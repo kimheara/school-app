@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>생활규정 성찰교실 누적 관리 시스템 (OS & Android 지원)</title>
+    
+    <!-- PWA & Mobile Optimization Meta Tags -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="성찰교실관리">
+    
+    <!-- Dynamic Manifest Data URI for Android App Installation -->
+    <link rel="manifest" href="data:application/manifest+json;utf8,%7B%22name%22%3A%22%EC%83%9F%ED%99%9C%EA%B7%9C%EC%A0%95%20%EC%84%B1%EC%B0%B0%EA%B5%90%EC%8B%A4%20%EA%B4%80%EB%A6%AC%22%2C%22short_name%22%3A%22%EC%84%B1%EC%B0%B0%EA%B5%90%EC%8B%A4%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%230f172a%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F2991%2F2991108.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for Statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts (Noto Sans KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#2563eb',
+                            600: '#1d4ed8',
+                            700: '#1e40af',
+                            800: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        /* Custom Mobile Responsive Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Touch friendly active feedback */
+        button:active, .touch-active:active {
+            transform: scale(0.97);
+            transition: transform 0.1s ease;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background: white;
+            }
+        }
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-blue-200">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-3 right-3 left-3 sm:left-auto sm:right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- OS / Device Status Bar -->
+    <div class="bg-slate-950 text-slate-400 text-[11px] px-4 py-1 flex items-center justify-between no-print border-b border-slate-800">
+        <div class="flex items-center gap-2">
+            <span id="osBadge" class="inline-flex items-center gap-1 font-semibold text-blue-400">
+                <i class="fa-solid fa-microchip"></i> <span id="osText">시스템 분석 중...</span>
+            </span>
+            <span class="hidden sm:inline text-slate-600">|</span>
+            <span id="pwaStatus" class="hidden sm:inline text-slate-400">웹 브라우저 모드</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="pwaInstallBtn" onclick="installPWA()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-0.5 rounded text-[10px] font-bold transition flex items-center gap-1">
+                <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">안드로이드/OS</span> 앱 설치
+            </button>
+            <span id="clockDisplay" class="font-mono text-slate-400">00:00</span>
+        </div>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- App Title -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 shrink-0">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-lg font-bold tracking-tight flex items-center gap-1.5">
+                            생활규정 성찰교실
+                            <span class="text-[10px] bg-blue-900 text-blue-200 border border-blue-700 font-semibold px-1.5 py-0.2 rounded">Mobile OS</span>
+                        </h1>
+                        <p class="text-[11px] text-slate-400">학생 지도 & 성찰교실 하이브리드 관리</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation Tabs -->
+                <nav class="hidden md:flex space-x-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 bg-blue-600 text-white">
+                        <i class="fa-solid fa-chart-pie text-xs"></i> 대시보드
+                    </button>
+                    <button onclick="switchTab('records')" id="nav-records" class="nav-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-list-check text-xs"></i> 지도기록
+                    </button>
+                    <button onclick="switchTab('reflection')" id="nav-reflection" class="nav-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800 relative">
+                        <i class="fa-solid fa-school-flag text-xs"></i> 성찰교실
+                        <span id="reflectionBadge" class="bg-red-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold hidden">0</span>
+                    </button>
+                    <button onclick="switchTab('stats')" id="nav-stats" class="nav-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-chart-line text-xs"></i> 통계
+                    </button>
+                    <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800">
+                        <i class="fa-solid fa-gear text-xs"></i> 규정/백업
+                    </button>
+                </nav>
+
+                <!-- Quick Action Buttons -->
+                <div class="flex items-center gap-2">
+                    <button onclick="openMobileScanModal()" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 px-3 py-2 rounded-lg text-xs font-medium transition flex items-center gap-1.5" title="스캔 / 즉시조회">
+                        <i class="fa-solid fa-qrcode text-sm"></i>
+                        <span class="hidden sm:inline">스캔</span>
+                    </button>
+                    <button onclick="openAddRecordModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium shadow-md transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>지도등록</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Navigation Row -->
+        <div class="md:hidden border-t border-slate-800 px-2 py-1.5 flex justify-around text-[11px] bg-slate-900">
+            <button onclick="switchTab('dashboard')" class="m-nav-btn text-blue-400 py-1 px-2 flex flex-col items-center">
+                <i class="fa-solid fa-chart-pie mb-1 text-sm"></i> 대시보드
+            </button>
+            <button onclick="switchTab('records')" class="m-nav-btn text-slate-400 py-1 px-2 flex flex-col items-center">
+                <i class="fa-solid fa-list-check mb-1 text-sm"></i> 지도기록
+            </button>
+            <button onclick="switchTab('reflection')" class="m-nav-btn text-slate-400 py-1 px-2 flex flex-col items-center relative">
+                <i class="fa-solid fa-school-flag mb-1 text-sm"></i> 성찰교실
+                <span id="mReflectionBadge" class="absolute top-0 right-1 w-2 h-2 rounded-full bg-red-500 hidden"></span>
+            </button>
+            <button onclick="switchTab('stats')" class="m-nav-btn text-slate-400 py-1 px-2 flex flex-col items-center">
+                <i class="fa-solid fa-chart-line mb-1 text-sm"></i> 통계
+            </button>
+            <button onclick="switchTab('settings')" class="m-nav-btn text-slate-400 py-1 px-2 flex flex-col items-center">
+                <i class="fa-solid fa-gear mb-1 text-sm"></i> 설정/백업
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6 no-print">
+
+        <!-- TAB 1: DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content space-y-6">
+            <!-- Summary Metric Cards Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">전체 지도 건수</p>
+                        <h3 class="text-xl sm:text-2xl font-black text-slate-800 mt-1" id="stat-total-records">0건</h3>
+                        <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5" id="stat-sub-records">누적 이력 기록</p>
+                    </div>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] sm:text-xs font-semibold text-amber-600 uppercase tracking-wider">성찰교실 대상</p>
+                        <h3 class="text-xl sm:text-2xl font-black text-amber-600 mt-1" id="stat-pending-reflection">0명</h3>
+                        <p class="text-[10px] sm:text-xs text-amber-500 mt-0.5">기준 누적 초과</p>
+                    </div>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] sm:text-xs font-semibold text-emerald-600 uppercase tracking-wider">이수 완료</p>
+                        <h3 class="text-xl sm:text-2xl font-black text-emerald-600 mt-1" id="stat-completed-reflection">0명</h3>
+                        <p class="text-[10px] sm:text-xs text-emerald-500 mt-0.5">성찰록 이수 처리</p>
+                    </div>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] sm:text-xs font-semibold text-rose-600 uppercase tracking-wider">선도위 검토</p>
+                        <h3 class="text-xl sm:text-2xl font-black text-rose-600 mt-1" id="stat-high-risk">0명</h3>
+                        <p class="text-[10px] sm:text-xs text-rose-500 mt-0.5">고위험군 (7회 이상)</p>
+                    </div>
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
+                        <i class="fa-solid fa-shield-cat"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Urgent Reflection Classroom Attention Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/60">
+                    <div>
+                        <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block animate-pulse"></span>
+                            성찰교실 지목 대상 학생 (미이수)
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">누적 지도 횟수가 성찰교실 참가 기준에 도달한 학생 목록입니다.</p>
+                    </div>
+                    <button onclick="switchTab('reflection')" class="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 self-end sm:self-auto">
+                        성찰교실 관리 <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs sm:text-sm text-left">
+                        <thead class="text-[11px] text-slate-500 bg-slate-50 uppercase border-b border-slate-100">
+                            <tr>
+                                <th class="px-4 py-3">학번 / 이름</th>
+                                <th class="px-4 py-3">누적 횟수</th>
+                                <th class="px-4 py-3">최근 위반</th>
+                                <th class="px-4 py-3">단계</th>
+                                <th class="px-4 py-3 text-right">조치</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboardUrgentTable" class="divide-y divide-slate-100">
+                            <!-- JS Dynamically Populates -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Guidance Feed -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-blue-500"></i> 최근 지도 등록 이력
+                    </h2>
+                    <button onclick="switchTab('records')" class="text-xs text-blue-600 hover:text-blue-800 font-semibold">전체보기</button>
+                </div>
+                <div id="dashboardRecentFeed" class="space-y-2.5">
+                    <!-- JS Dynamically Populates -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: RECORDS MANAGEMENT -->
+        <div id="tab-records" class="tab-content space-y-4 hidden">
+            <!-- Filter Bar -->
+            <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <!-- Grade Filter -->
+                    <select id="filterGrade" onchange="applyFilters()" class="border border-slate-300 rounded-xl text-xs sm:text-sm px-3 py-2 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="ALL">전체 학년</option>
+                        <option value="1">1학년</option>
+                        <option value="2">2학년</option>
+                        <option value="3">3학년</option>
+                    </select>
+
+                    <!-- Category Filter -->
+                    <select id="filterCategory" onchange="applyFilters()" class="border border-slate-300 rounded-xl text-xs sm:text-sm px-3 py-2 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="ALL">전체 위반 유형</option>
+                        <option value="복장/용모">복장/용모 위반</option>
+                        <option value="전자기기">전자기기 무단사용</option>
+                        <option value="지각/태만">지각/수업태만</option>
+                        <option value="언어/불손">언어폭력/불손</option>
+                        <option value="기타">기타 지도사항</option>
+                    </select>
+
+                    <!-- Status Filter -->
+                    <select id="filterStatus" onchange="applyFilters()" class="border border-slate-300 rounded-xl text-xs sm:text-sm px-3 py-2 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="ALL">전체 상태</option>
+                        <option value="NORMAL">정상 (1~2회)</option>
+                        <option value="CAUTION">주의 (3~4회)</option>
+                        <option value="REFLECTION">성찰교실 (5~6회)</option>
+                        <option value="WARNING">선도위 대상 (7회+)</option>
+                    </select>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative w-full md:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="recordSearch" onkeyup="applyFilters()" placeholder="학생 이름 / 학번 / 내용 검색..." class="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- Main Records Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs sm:text-sm text-left">
+                        <thead class="text-[11px] text-slate-500 bg-slate-100 uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="px-3.5 py-3">일시</th>
+                                <th class="px-3.5 py-3">학번</th>
+                                <th class="px-3.5 py-3">이름</th>
+                                <th class="px-3.5 py-3">유형</th>
+                                <th class="px-3.5 py-3">세부 지도내용</th>
+                                <th class="px-3.5 py-3">지도교사</th>
+                                <th class="px-3.5 py-3">개인누적</th>
+                                <th class="px-3.5 py-3 text-center">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody" class="divide-y divide-slate-100">
+                            <!-- JS Dynamically Populates -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination / Counter Footer -->
+                <div class="p-3.5 border-t border-slate-100 bg-slate-50 text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-1">
+                    <span id="recordCountLabel" class="font-semibold text-slate-700">총 0건의 지도 기록</span>
+                    <p class="text-slate-400 text-[11px]">안드로이드 및 모바일 웹에서도 즉시 데이터 수정/삭제가 가능합니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: REFLECTION CLASSROOM OPERATIONS -->
+        <div id="tab-reflection" class="tab-content space-y-6 hidden">
+            <!-- Header Banner -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 rounded-2xl p-5 sm:p-6 text-white shadow-md relative overflow-hidden">
+                <div class="relative z-10 space-y-1">
+                    <h2 class="text-lg sm:text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-school-flag text-amber-400"></i> 성찰교실 배정 및 반성일지 이수 관리
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-300 max-w-2xl">
+                        생활규정 5회 이상 누적 학생 대상 성찰교실 출석 관리, 성찰록 작성 및 모바일/프린트 인쇄를 지원합니다.
+                    </p>
+                </div>
+                <div class="absolute right-3 bottom-1 opacity-10 text-8xl pointer-events-none">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Pending Assignment List -->
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2 text-xs sm:text-sm">
+                            <i class="fa-solid fa-user-clock text-amber-500"></i> 성찰교실 참가 대상자 (5회 이상 누적)
+                        </h3>
+                        <span id="pendingCountBadge" class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">0명 대기</span>
+                    </div>
+
+                    <div id="reflectionCandidatesList" class="space-y-3">
+                        <!-- JS dynamically inserts cards -->
+                    </div>
+                </div>
+
+                <!-- Completed / Attendance Log History -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3 text-xs sm:text-sm">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i> 최근 성찰교실 이수 완료 이력
+                    </h3>
+
+                    <div id="reflectionCompletedList" class="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+                        <!-- JS dynamically inserts history -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: STATISTICS & ANALYTICS -->
+        <div id="tab-stats" class="tab-content space-y-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Violation Type Distribution Chart -->
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-blue-500"></i> 위반 항목별 비율 분석
+                    </h3>
+                    <div class="h-60 relative">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Grade Level Comparison Chart -->
+                <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-bar text-indigo-500"></i> 학년별 건수 비교
+                    </h3>
+                    <div class="h-60 relative">
+                        <canvas id="gradeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Students High Cumulative Alert Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+                <h3 class="text-xs sm:text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-ranking-star text-rose-500"></i> 최다 지도 누적 학생 순위
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs sm:text-sm text-left">
+                        <thead class="text-[11px] text-slate-500 bg-slate-50 uppercase">
+                            <tr>
+                                <th class="px-4 py-2.5">순위</th>
+                                <th class="px-4 py-2.5">학생 정보</th>
+                                <th class="px-4 py-2.5">총 누적</th>
+                                <th class="px-4 py-2.5">주요 사유</th>
+                                <th class="px-4 py-2.5">성찰교실 상태</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topRiskTable" class="divide-y divide-slate-100">
+                            <!-- JS Generated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: RULES & SETTINGS & BACKUP -->
+        <div id="tab-settings" class="tab-content space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <!-- Guidance Threshold Settings -->
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-blue-600"></i> 학교 생활규정 성찰 단계 기준 설정
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">누적 지도 횟수에 따른 자동 분류 기준을 조정합니다.</p>
+                    </div>
+
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs sm:text-sm font-semibold text-slate-700">1단계: 구두 지도 / 경고</span>
+                                <p class="text-[11px] text-slate-400">기본 지도 기록 작성</p>
+                            </div>
+                            <span class="text-xs sm:text-sm font-bold text-slate-600">1회 이상</span>
+                        </div>
+
+                        <div class="p-3.5 bg-amber-50/70 rounded-xl border border-amber-200 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs sm:text-sm font-semibold text-amber-800">2단계: 담임/교과 상담 (주의)</span>
+                                <p class="text-[11px] text-amber-600">학생 면담 및 주의 촉구</p>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" id="settingCautionThreshold" value="3" min="2" max="10" class="w-14 text-center border border-amber-300 rounded-lg p-1 font-bold text-amber-800 text-xs sm:text-sm">
+                                <span class="text-xs text-amber-800 font-medium">회</span>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-orange-50/70 rounded-xl border border-orange-200 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs sm:text-sm font-semibold text-orange-800">3단계: 성찰교실 참가 (교내성찰)</span>
+                                <p class="text-[11px] text-orange-600">성찰록 작성 및 이수 지정</p>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" id="settingReflectionThreshold" value="5" min="3" max="15" class="w-14 text-center border border-orange-300 rounded-lg p-1 font-bold text-orange-800 text-xs sm:text-sm">
+                                <span class="text-xs text-orange-800 font-medium">회</span>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-rose-50/70 rounded-xl border border-rose-200 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs sm:text-sm font-semibold text-rose-800">4단계: 학생선도위원회 회부</span>
+                                <p class="text-[11px] text-rose-600">선도위 안정적 심의 준비</p>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" id="settingWarningThreshold" value="7" min="5" max="20" class="w-14 text-center border border-rose-300 rounded-lg p-1 font-bold text-rose-800 text-xs sm:text-sm">
+                                <span class="text-xs text-rose-800 font-medium">회</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button onclick="saveSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shadow transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i> 설정 저장
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Android & OS Cross-Data Sync & Backup -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-database text-indigo-600"></i> 데이터 백업 & 내보내기
+                        </h2>
+                        <p class="text-[11px] text-slate-500 mt-0.5">안드로이드 기기 간 또는 PC와의 데이터 연동을 위한 기능입니다.</p>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <button onclick="exportJSON()" class="w-full bg-slate-800 hover:bg-slate-700 text-white p-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-file-export text-blue-400"></i> 데이터 백업 (JSON 파일 다운)
+                        </button>
+
+                        <label class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer">
+                            <i class="fa-solid fa-file-import text-indigo-600"></i> 데이터 복원 (JSON 파일 선택)
+                            <input type="file" id="importJsonInput" accept=".json" onchange="importJSON(event)" class="hidden">
+                        </label>
+
+                        <button onclick="exportCSV()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white p-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-file-excel"></i> 엑셀용 내보내기 (CSV)
+                        </button>
+
+                        <button onclick="loadSampleData()" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 p-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-rotate-right"></i> 샘플 초기 데이터 복원
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Add / Edit Guidance Record -->
+    <div id="addRecordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3 sm:p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden transform transition-all">
+            <div class="bg-slate-900 px-5 py-3.5 text-white flex justify-between items-center">
+                <h3 class="font-bold text-sm sm:text-base flex items-center gap-2" id="modalTitle">
+                    <i class="fa-solid fa-pen-to-square text-blue-400"></i> 신규 지도기록 등록
+                </h3>
+                <button onclick="closeAddRecordModal()" class="text-slate-400 hover:text-white transition p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="recordForm" onsubmit="handleRecordSubmit(event)" class="p-5 space-y-3.5">
+                <input type="hidden" id="editRecordId" value="">
+
+                <!-- Student Grade/Class/Num Info -->
+                <div class="grid grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">학년 <span class="text-red-500">*</span></label>
+                        <select id="inputGrade" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50">
+                            <option value="1">1학년</option>
+                            <option value="2">2학년</option>
+                            <option value="3">3학년</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">반 <span class="text-red-500">*</span></label>
+                        <input type="number" id="inputClass" min="1" max="30" placeholder="예: 2" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">번호 <span class="text-red-500">*</span></label>
+                        <input type="number" id="inputNum" min="1" max="40" placeholder="예: 15" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Student Name & Teacher -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">학생 성명 <span class="text-red-500">*</span></label>
+                        <input type="text" id="inputName" placeholder="홍길동" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 교사 성명 <span class="text-red-500">*</span></label>
+                        <input type="text" id="inputTeacher" placeholder="김교사" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Date & Violation Category -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 일시 <span class="text-red-500">*</span></label>
+                        <input type="date" id="inputDate" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">위반 구분 <span class="text-red-500">*</span></label>
+                        <select id="inputCategory" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50">
+                            <option value="복장/용모">복장/용모 위반</option>
+                            <option value="전자기기">전자기기 무단사용</option>
+                            <option value="지각/태만">지각 및 수업태만</option>
+                            <option value="언어/불손">언어폭력 및 불손</option>
+                            <option value="기타">기타 생활규정 위반</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Detailed Reason -->
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 사유 및 구체적 상황 <span class="text-red-500">*</span></label>
+                    <textarea id="inputDetail" rows="3" placeholder="예: 2교시 수업 중 휴대전화 무단 제출 조치 거부 및 지적사항 불응" required class="w-full border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"></textarea>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 flex justify-end gap-2">
+                    <button type="button" onclick="closeAddRecordModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">취소</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow">저장하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Mobile Camera Scan & Student Search -->
+    <div id="mobileScanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden p-5 text-center space-y-4">
+            <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 mx-auto flex items-center justify-center text-xl">
+                <i class="fa-solid fa-camera"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-800 text-base">모바일 스캔 & 즉시 검색</h3>
+                <p class="text-xs text-slate-500 mt-1">안드로이드 기기 카메라를 통해 학생증 번호 또는 QR/바코드를 가져옵니다.</p>
+            </div>
+
+            <!-- Native Android Camera Trigger File Input -->
+            <label class="block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow transition cursor-pointer">
+                <i class="fa-solid fa-camera-retro mr-1"></i> 안드로이드 카메라 열기
+                <input type="file" accept="image/*" capture="environment" onchange="handleCameraCapture(event)" class="hidden">
+            </label>
+
+            <div class="relative flex py-1 items-center">
+                <div class="flex-grow border-t border-slate-200"></div>
+                <span class="flex-shrink mx-2 text-[10px] text-slate-400 uppercase">또는 학번 직접 입력</span>
+                <div class="flex-grow border-t border-slate-200"></div>
+            </div>
+
+            <div class="flex gap-2">
+                <input type="text" id="quickStudentKey" placeholder="예: 김민준 또는 1-2" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <button onclick="handleQuickSearch()" class="bg-slate-800 text-white text-xs font-bold px-3 py-2 rounded-xl shrink-0">검색</button>
+            </div>
+
+            <button onclick="closeMobileScanModal()" class="text-xs text-slate-400 hover:text-slate-600 block mx-auto pt-2">닫기</button>
+        </div>
+    </div>
+
+    <!-- Modal: Reflection Journal & Official Printable Form -->
+    <div id="reflectionModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-40 hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="bg-slate-900 px-5 py-3.5 text-white flex justify-between items-center no-print">
+                <h3 class="font-bold text-sm sm:text-base flex items-center gap-2">
+                    <i class="fa-solid fa-file-signature text-amber-400"></i> 성찰교실 이수 & 성찰록 작성
+                </h3>
+                <button onclick="closeReflectionModal()" class="text-slate-400 hover:text-white transition p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 overflow-y-auto space-y-4 flex-1">
+                <!-- PRINT CONTENT AREA -->
+                <div id="printArea" class="bg-white">
+                    <div class="text-center border-b-2 border-slate-800 pb-3 mb-3">
+                        <h1 class="text-lg sm:text-xl font-bold tracking-widest text-slate-900">성 찰 교 실   이 수   성 찰 록</h1>
+                        <p class="text-[11px] text-slate-500 mt-0.5">학교 생활규정 준수 및 자기성찰 기록부</p>
+                    </div>
+
+                    <!-- Student Profile Summary Box -->
+                    <div id="modalStudentSummary" class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs sm:text-sm grid grid-cols-2 gap-2 mb-3">
+                        <!-- JS populated -->
+                    </div>
+
+                    <!-- Guidance History Log inside Print -->
+                    <div class="mb-3">
+                        <h4 class="text-[11px] font-bold text-slate-700 mb-1.5 uppercase flex items-center gap-1">
+                            <i class="fa-solid fa-list-ol text-blue-600"></i> 누적 지도 이력 요약
+                        </h4>
+                        <div id="modalStudentHistory" class="border border-slate-200 rounded-lg overflow-hidden text-[11px]">
+                            <!-- JS populated -->
+                        </div>
+                    </div>
+
+                    <!-- Student Reflection Textareas -->
+                    <div class="space-y-2.5">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">1. 본인의 규칙 위반 행위에 대한 반성</label>
+                            <textarea id="reflectionText1" rows="2" placeholder="어떠한 행동이 규정에 어긋났는지 스스로 기술하세요." class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">2. 향후 재발 방지를 위한 나의 약속 및 시정 계획</label>
+                            <textarea id="reflectionText2" rows="2" placeholder="앞으로 학교생활을 어떻게 개선할 것인지 구체적으로 작성하세요." class="w-full border border-slate-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Signatures -->
+                    <div class="mt-6 pt-3 border-t border-slate-200 grid grid-cols-3 gap-2 text-center text-[11px] text-slate-600">
+                        <div>
+                            <p class="mb-5 font-semibold">학생 서명</p>
+                            <p class="border-b border-slate-400 mx-2 pb-0.5">( 서명 )</p>
+                        </div>
+                        <div>
+                            <p class="mb-5 font-semibold">지도교사 서명</p>
+                            <p class="border-b border-slate-400 mx-2 pb-0.5">( 서명 )</p>
+                        </div>
+                        <div>
+                            <p class="mb-5 font-semibold">생활지도부장/담임</p>
+                            <p class="border-b border-slate-400 mx-2 pb-0.5">( 인 )</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="p-3.5 bg-slate-50 border-t border-slate-200 flex justify-between items-center no-print">
+                <button onclick="printReflectionForm()" class="bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-print"></i> 성찰록 인쇄
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeReflectionModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200">닫기</button>
+                    <button onclick="completeReflectionProcess()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow transition flex items-center gap-1">
+                        <i class="fa-solid fa-check"></i> 이수 완료 처리
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Confirmation (Replacing browser confirm()) -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full shadow-2xl p-5 text-center space-y-3">
+            <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center text-lg">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="confirmModalTitle" class="font-bold text-slate-800 text-sm">확인 요청</h3>
+            <p id="confirmModalMessage" class="text-xs text-slate-600">정말 진행하시겠습니까?</p>
+            <div class="flex gap-2 pt-2">
+                <button id="confirmModalCancelBtn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 rounded-xl">취소</button>
+                <button id="confirmModalOkBtn" class="w-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold py-2 rounded-xl shadow">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            records: [],
+            settings: {
+                cautionThreshold: 3,     // 주의
+                reflectionThreshold: 5,  // 성찰교실
+                warningThreshold: 7     // 선도위
+            },
+            currentStudentForReflection: null,
+            charts: { category: null, grade: null },
+            deferredPWAInstall: null
+        };
+
+        const sampleRecords = [
+            { id: "R-101", grade: 1, classNum: 2, studentNum: 5, name: "김민준", teacher: "이지은", date: "2026-08-20", category: "복장/용모", detail: "사복 후드티 착용 및 체육복 미지참 지적에 불응", reflectionCompleted: false },
+            { id: "R-102", grade: 1, classNum: 2, studentNum: 5, name: "김민준", teacher: "박성호", date: "2026-08-22", category: "전자기기", detail: "수업 중 휴대전화 무단 사용 및 적발", reflectionCompleted: false },
+            { id: "R-103", grade: 1, classNum: 2, studentNum: 5, name: "김민준", teacher: "김태영", date: "2026-08-24", category: "지각/태만", detail: "아침 등교 시간 20분 무단 지각", reflectionCompleted: false },
+            { id: "R-104", grade: 1, classNum: 2, studentNum: 5, name: "김민준", teacher: "이지은", date: "2026-08-25", category: "언어/불손", detail: "지도 교사 지적에 언어적 불손 태도 표출", reflectionCompleted: false },
+            { id: "R-105", grade: 1, classNum: 2, studentNum: 5, name: "김민준", teacher: "박성호", date: "2026-08-26", category: "전자기기", detail: "점심시간 무단 태블릿 게임 이용 적발", reflectionCompleted: false },
+            
+            { id: "R-106", grade: 2, classNum: 4, studentNum: 12, name: "이서연", teacher: "최현우", date: "2026-08-18", category: "지각/태만", detail: "수업 시작 후 15분 지적 입실", reflectionCompleted: false },
+            { id: "R-107", grade: 2, classNum: 4, studentNum: 12, name: "이서연", teacher: "최현우", date: "2026-08-21", category: "지각/태만", detail: "수업시간 무단 이탈 및 자율학습 태만", reflectionCompleted: false },
+            { id: "R-108", grade: 2, classNum: 4, studentNum: 12, name: "이서연", teacher: "김태영", date: "2026-08-25", category: "복장/용모", detail: "슬리퍼 착용 등교 지적", reflectionCompleted: false },
+
+            { id: "R-109", grade: 3, classNum: 1, studentNum: 8, name: "박지훈", teacher: "정수진", date: "2026-08-10", category: "언어/불손", detail: "급식실 순서 입장에 불응하고 욕설 사용", reflectionCompleted: true },
+            { id: "R-110", grade: 3, classNum: 1, studentNum: 8, name: "박지훈", teacher: "정수진", date: "2026-08-11", category: "복장/용모", detail: "학교 규정 외 염색 지적", reflectionCompleted: true },
+            { id: "R-111", grade: 3, classNum: 1, studentNum: 8, name: "박지훈", teacher: "이지은", date: "2026-08-15", category: "기타", detail: "교내 쓰레기 무단 투기", reflectionCompleted: true },
+            { id: "R-112", grade: 3, classNum: 1, studentNum: 8, name: "박지훈", teacher: "정수진", date: "2026-08-18", category: "전자기기", detail: "시험 기간 전자기기 제출 이행 지연", reflectionCompleted: true },
+            { id: "R-113", grade: 3, classNum: 1, studentNum: 8, name: "박지훈", teacher: "정수진", date: "2026-08-20", category: "언어/불손", detail: "동급생에게 언어폭력 행사", reflectionCompleted: true },
+
+            { id: "R-114", grade: 2, classNum: 1, studentNum: 19, name: "최우진", teacher: "박성호", date: "2026-08-23", category: "복장/용모", detail: "규정 미준수 장신구 착용 적발", reflectionCompleted: false }
+        ];
+
+        window.onload = function() {
+            detectEnvironment();
+            startClock();
+            initPWA();
+
+            const dateInput = document.getElementById('inputDate');
+            if (dateInput) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+            }
+            loadData();
+            renderAll();
+        };
+
+        // Detect Operating System & Android / iOS / Desktop environment
+        function detectEnvironment() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            const osText = document.getElementById('osText');
+            const pwaStatus = document.getElementById('pwaStatus');
+            
+            let osName = "Desktop OS";
+            let iconClass = "fa-laptop";
+
+            if (/android/i.test(ua)) {
+                osName = "Android OS";
+                iconClass = "fa-android text-emerald-400";
+            } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+                osName = "iOS Apple";
+                iconClass = "fa-apple text-slate-200";
+            } else if (/Win/i.test(ua)) {
+                osName = "Windows OS";
+                iconClass = "fa-windows text-blue-400";
+            } else if (/Mac/i.test(ua)) {
+                osName = "macOS";
+                iconClass = "fa-apple text-slate-300";
+            }
+
+            // Check if running as PWA / Standalone App
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (isStandalone) {
+                pwaStatus.innerText = "단독 실행 앱 모드 (Standalone)";
+                pwaStatus.classList.add("text-emerald-400", "font-bold");
+            }
+
+            osText.innerHTML = `<i class="fa-brands ${iconClass}"></i> ${osName}`;
+        }
+
+        function startClock() {
+            function update() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                document.getElementById('clockDisplay').innerText = `${hours}:${minutes}`;
+            }
+            update();
+            setInterval(update, 10000);
+        }
+
+        function initPWA() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                state.deferredPWAInstall = e;
+                const btn = document.getElementById('pwaInstallBtn');
+                if (btn) btn.classList.remove('hidden');
+            });
+        }
+
+        function installPWA() {
+            if (state.deferredPWAInstall) {
+                state.deferredPWAInstall.prompt();
+                state.deferredPWAInstall.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        showToast("앱이 기기에 추가되었습니다.", "success");
+                    }
+                    state.deferredPWAInstall = null;
+                });
+            } else {
+                showToast("모바일 브라우저 메뉴의 '홈 화면에 추가'를 클릭하세요.", "info");
+            }
+        }
+
+        // Mobile Haptic Feedback helper
+        function triggerHaptic() {
+            if ("vibrate" in navigator) {
+                try { navigator.vibrate(20); } catch(e){}
+            }
+        }
+
+        function loadData() {
+            const savedRecords = localStorage.getItem('school_guidance_records');
+            const savedSettings = localStorage.getItem('school_guidance_settings');
+
+            if (savedRecords) {
+                try { state.records = JSON.parse(savedRecords); } catch(e) { state.records = JSON.parse(JSON.stringify(sampleRecords)); }
+            } else {
+                state.records = JSON.parse(JSON.stringify(sampleRecords));
+            }
+
+            if (savedSettings) {
+                try {
+                    state.settings = JSON.parse(savedSettings);
+                    document.getElementById('settingCautionThreshold').value = state.settings.cautionThreshold;
+                    document.getElementById('settingReflectionThreshold').value = state.settings.reflectionThreshold;
+                    document.getElementById('settingWarningThreshold').value = state.settings.warningThreshold;
+                } catch(e){}
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('school_guidance_records', JSON.stringify(state.records));
+            localStorage.setItem('school_guidance_settings', JSON.stringify(state.settings));
+        }
+
+        function loadSampleData() {
+            triggerHaptic();
+            openConfirmModal("샘플 데이터 복원", "기존 데이터가 샘플 데이터로 대체됩니다. 진행할까요?", () => {
+                state.records = JSON.parse(JSON.stringify(sampleRecords));
+                saveData();
+                renderAll();
+                showToast("샘플 데이터가 성공적으로 복원되었습니다.", "info");
+            });
+        }
+
+        function switchTab(tabId) {
+            triggerHaptic();
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Style desktop nav
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-blue-600', 'text-white');
+                activeBtn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+            }
+
+            // Style mobile bottom nav
+            document.querySelectorAll('.m-nav-btn').forEach(btn => {
+                btn.classList.remove('text-blue-400');
+                btn.classList.add('text-slate-400');
+            });
+
+            if (tabId === 'stats') {
+                renderCharts();
+            }
+        }
+
+        function getStudentStats() {
+            const map = {};
+            state.records.forEach(r => {
+                const key = `${r.grade}-${r.classNum}-${r.studentNum}-${r.name}`;
+                if (!map[key]) {
+                    map[key] = {
+                        key,
+                        grade: r.grade,
+                        classNum: r.classNum,
+                        studentNum: r.studentNum,
+                        name: r.name,
+                        count: 0,
+                        records: []
+                    };
+                }
+                map[key].count++;
+                map[key].records.push(r);
+            });
+
+            Object.values(map).forEach(s => {
+                s.records.sort((a,b) => new Date(b.date) - new Date(a.date));
+                s.latestCategory = s.records[0]?.category || '-';
+
+                if (s.count >= state.settings.warningThreshold) {
+                    s.status = 'WARNING';
+                    s.statusLabel = '선도위 대상';
+                    s.badgeClass = 'bg-rose-100 text-rose-800 border-rose-300';
+                } else if (s.count >= state.settings.reflectionThreshold) {
+                    s.status = 'REFLECTION';
+                    s.statusLabel = '성찰교실 대상';
+                    s.badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
+                } else if (s.count >= state.settings.cautionThreshold) {
+                    s.status = 'CAUTION';
+                    s.statusLabel = '주의 단계';
+                    s.badgeClass = 'bg-yellow-100 text-yellow-800 border-yellow-300';
+                } else {
+                    s.status = 'NORMAL';
+                    s.statusLabel = '일반 지도';
+                    s.badgeClass = 'bg-slate-100 text-slate-700 border-slate-300';
+                }
+            });
+
+            return Object.values(map);
+        }
+
+        function renderAll() {
+            const studentStats = getStudentStats();
+
+            // 1. Dashboard Stat Cards
+            document.getElementById('stat-total-records').innerText = `${state.records.length}건`;
+            
+            const pendingReflectionStudents = studentStats.filter(s => s.count >= state.settings.reflectionThreshold && s.records.some(r => !r.reflectionCompleted));
+            document.getElementById('stat-pending-reflection').innerText = `${pendingReflectionStudents.length}명`;
+            
+            const completedStudents = studentStats.filter(s => s.records.some(r => r.reflectionCompleted));
+            document.getElementById('stat-completed-reflection').innerText = `${completedStudents.length}명`;
+
+            const highRiskStudents = studentStats.filter(s => s.count >= state.settings.warningThreshold);
+            document.getElementById('stat-high-risk').innerText = `${highRiskStudents.length}명`;
+
+            // Reflection badges
+            const badgeEl = document.getElementById('reflectionBadge');
+            const mBadgeEl = document.getElementById('mReflectionBadge');
+            if (pendingReflectionStudents.length > 0) {
+                badgeEl.innerText = pendingReflectionStudents.length;
+                badgeEl.classList.remove('hidden');
+                if (mBadgeEl) mBadgeEl.classList.remove('hidden');
+            } else {
+                badgeEl.classList.add('hidden');
+                if (mBadgeEl) mBadgeEl.classList.add('hidden');
+            }
+
+            // 2. Urgent Attention Table
+            const urgentTable = document.getElementById('dashboardUrgentTable');
+            urgentTable.innerHTML = '';
+            if (pendingReflectionStudents.length === 0) {
+                urgentTable.innerHTML = `<tr><td colspan="5" class="px-4 py-6 text-center text-slate-400">성찰교실 참가 대상 학생이 없습니다.</td></tr>`;
+            } else {
+                pendingReflectionStudents.forEach(s => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-semibold text-slate-800">
+                            ${s.grade}학년 ${s.classNum}반 ${s.studentNum}번 <span class="text-blue-600 ml-1">${s.name}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                                누적 ${s.count}회
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-slate-600">${s.latestCategory}</td>
+                        <td class="px-4 py-3">
+                            <span class="text-xs px-2 py-0.5 rounded border ${s.badgeClass}">${s.statusLabel}</span>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="openReflectionModal('${s.key}')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium shadow transition flex items-center gap-1 ml-auto">
+                                <i class="fa-solid fa-pen"></i> 성찰록
+                            </button>
+                        </td>
+                    `;
+                    urgentTable.appendChild(tr);
+                });
+            }
+
+            // 3. Recent Feed on Dashboard
+            const recentFeed = document.getElementById('dashboardRecentFeed');
+            recentFeed.innerHTML = '';
+            const sortedRecords = [...state.records].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+            if (sortedRecords.length === 0) {
+                recentFeed.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">등록된 지도 기록이 없습니다.</p>`;
+            } else {
+                sortedRecords.forEach(r => {
+                    const div = document.createElement('div');
+                    div.className = "p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-start justify-between text-xs";
+                    div.innerHTML = `
+                        <div class="space-y-1">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="font-bold text-slate-800">${r.grade}학년 ${r.classNum}반 ${r.name}</span>
+                                <span class="bg-blue-100 text-blue-700 font-semibold px-1.5 py-0.2 rounded text-[10px]">${r.category}</span>
+                                <span class="text-slate-400 text-[10px]">${r.date}</span>
+                            </div>
+                            <p class="text-slate-600">${r.detail}</p>
+                        </div>
+                        <span class="text-slate-400 text-[11px] shrink-0 ml-2">교사: ${r.teacher}</span>
+                    `;
+                    recentFeed.appendChild(div);
+                });
+            }
+
+            renderRecordsTable();
+            renderReflectionTab(studentStats);
+            renderTopRiskTable(studentStats);
+        }
+
+        function renderRecordsTable() {
+            const gradeFilter = document.getElementById('filterGrade').value;
+            const catFilter = document.getElementById('filterCategory').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+            const searchKeyword = document.getElementById('recordSearch').value.trim().toLowerCase();
+
+            const studentStats = getStudentStats();
+            const studentMap = {};
+            studentStats.forEach(s => studentMap[s.key] = s);
+
+            let filtered = state.records.filter(r => {
+                if (gradeFilter !== 'ALL' && r.grade.toString() !== gradeFilter) return false;
+                if (catFilter !== 'ALL' && r.category !== catFilter) return false;
+                
+                const studentKey = `${r.grade}-${r.classNum}-${r.studentNum}-${r.name}`;
+                const sStat = studentMap[studentKey];
+                if (statusFilter !== 'ALL' && sStat && sStat.status !== statusFilter) return false;
+
+                if (searchKeyword) {
+                    const searchTarget = `${r.name} ${r.grade}학년 ${r.classNum}반 ${r.teacher} ${r.detail}`.toLowerCase();
+                    if (!searchTarget.includes(searchKeyword)) return false;
+                }
+                return true;
+            });
+
+            filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            const tbody = document.getElementById('recordsTableBody');
+            tbody.innerHTML = '';
+
+            document.getElementById('recordCountLabel').innerText = `총 ${filtered.length}건의 지도 기록`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-slate-400">조건에 부합하는 지도 기록이 없습니다.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(r => {
+                const key = `${r.grade}-${r.classNum}-${r.studentNum}-${r.name}`;
+                const sStat = studentMap[key];
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="px-3.5 py-3 text-xs text-slate-500 whitespace-nowrap">${r.date}</td>
+                    <td class="px-3.5 py-3 text-xs font-semibold text-slate-700">${r.grade}-${r.classNum}-${r.studentNum}</td>
+                    <td class="px-3.5 py-3 text-xs font-bold text-slate-800">${r.name}</td>
+                    <td class="px-3.5 py-3">
+                        <span class="inline-block px-2 py-0.5 text-[10px] font-medium rounded bg-slate-100 text-slate-700">${r.category}</span>
+                    </td>
+                    <td class="px-3.5 py-3 text-xs text-slate-600 max-w-xs truncate" title="${r.detail}">${r.detail}</td>
+                    <td class="px-3.5 py-3 text-xs text-slate-500">${r.teacher}</td>
+                    <td class="px-3.5 py-3">
+                        <span class="text-xs px-2 py-0.5 rounded font-bold ${sStat ? sStat.badgeClass : 'bg-slate-100'}">
+                            ${sStat ? sStat.count : 1}회
+                        </span>
+                    </td>
+                    <td class="px-3.5 py-3 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="editRecord('${r.id}')" class="text-slate-400 hover:text-blue-600 p-1" title="수정">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteRecord('${r.id}')" class="text-slate-400 hover:text-rose-600 p-1" title="삭제">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyFilters() {
+            renderRecordsTable();
+        }
+
+        function renderReflectionTab(studentStats) {
+            const candidatesList = document.getElementById('reflectionCandidatesList');
+            const completedList = document.getElementById('reflectionCompletedList');
+            candidatesList.innerHTML = '';
+            completedList.innerHTML = '';
+
+            const candidates = studentStats.filter(s => s.count >= state.settings.reflectionThreshold && s.records.some(r => !r.reflectionCompleted));
+            const completed = studentStats.filter(s => s.records.some(r => r.reflectionCompleted));
+
+            document.getElementById('pendingCountBadge').innerText = `${candidates.length}명 대기`;
+
+            if (candidates.length === 0) {
+                candidatesList.innerHTML = `
+                    <div class="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-xs">
+                        <i class="fa-solid fa-circle-check text-2xl text-emerald-400 mb-2 block"></i>
+                        현재 성찰교실 참가 대기 중인 학생이 없습니다.
+                    </div>
+                `;
+            } else {
+                candidates.forEach(s => {
+                    const card = document.createElement('div');
+                    card.className = "p-3.5 rounded-xl border border-amber-200 bg-amber-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm";
+                    card.innerHTML = `
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-800 text-xs sm:text-sm">${s.grade}학년 ${s.classNum}반 ${s.studentNum}번 ${s.name}</span>
+                                <span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-full border border-amber-300">
+                                    누적 ${s.count}회
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-600">위반 요약: ${s.records.map(r=>r.category).join(', ')}</p>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <button onclick="openReflectionModal('${s.key}')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 rounded-xl font-semibold shadow transition flex items-center gap-1">
+                                <i class="fa-solid fa-clipboard-check"></i> 성찰록 진행
+                            </button>
+                        </div>
+                    `;
+                    candidatesList.appendChild(card);
+                });
+            }
+
+            if (completed.length === 0) {
+                completedList.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">완료 이력이 없습니다.</p>`;
+            } else {
+                completed.forEach(s => {
+                    const item = document.createElement('div');
+                    item.className = "p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 flex justify-between items-center text-xs";
+                    item.innerHTML = `
+                        <div>
+                            <p class="font-bold text-slate-800">${s.grade}학년 ${s.classNum}반 ${s.name}</p>
+                            <p class="text-emerald-600 text-[10px] mt-0.5"><i class="fa-solid fa-circle-check"></i> 이수 완료</p>
+                        </div>
+                        <button onclick="openReflectionModal('${s.key}')" class="text-slate-500 hover:text-indigo-600 text-xs underline">
+                            조회
+                        </button>
+                    `;
+                    completedList.appendChild(item);
+                });
+            }
+        }
+
+        function renderTopRiskTable(studentStats) {
+            const topRiskTable = document.getElementById('topRiskTable');
+            topRiskTable.innerHTML = '';
+
+            const sorted = [...studentStats].sort((a,b) => b.count - a.count).slice(0, 5);
+
+            if (sorted.length === 0) {
+                topRiskTable.innerHTML = `<tr><td colspan="5" class="px-4 py-4 text-center text-slate-400 text-xs">데이터가 없습니다.</td></tr>`;
+                return;
+            }
+
+            sorted.forEach((s, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 text-xs border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="px-4 py-2.5 font-bold text-slate-500">#${idx + 1}</td>
+                    <td class="px-4 py-2.5 font-bold text-slate-800">${s.grade}학년 ${s.classNum}반 ${s.name}</td>
+                    <td class="px-4 py-2.5">
+                        <span class="font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                            ${s.count}회
+                        </span>
+                    </td>
+                    <td class="px-4 py-2.5 text-slate-600">${s.latestCategory}</td>
+                    <td class="px-4 py-2.5">
+                        ${s.records.some(r => r.reflectionCompleted) 
+                            ? '<span class="text-emerald-600 font-semibold"><i class="fa-solid fa-check"></i> 완료</span>' 
+                            : '<span class="text-amber-600 font-semibold"><i class="fa-solid fa-clock"></i> 미이수</span>'}
+                    </td>
+                `;
+                topRiskTable.appendChild(tr);
+            });
+        }
+
+        function openAddRecordModal() {
+            triggerHaptic();
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-blue-400"></i> 신규 지도기록 등록`;
+            document.getElementById('editRecordId').value = "";
+            document.getElementById('recordForm').reset();
+            document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('addRecordModal').classList.remove('hidden');
+        }
+
+        function closeAddRecordModal() {
+            document.getElementById('addRecordModal').classList.add('hidden');
+        }
+
+        function handleRecordSubmit(e) {
+            e.preventDefault();
+            triggerHaptic();
+
+            const editId = document.getElementById('editRecordId').value;
+            const grade = parseInt(document.getElementById('inputGrade').value);
+            const classNum = parseInt(document.getElementById('inputClass').value);
+            const studentNum = parseInt(document.getElementById('inputNum').value);
+            const name = document.getElementById('inputName').value.trim();
+            const teacher = document.getElementById('inputTeacher').value.trim();
+            const date = document.getElementById('inputDate').value;
+            const category = document.getElementById('inputCategory').value;
+            const detail = document.getElementById('inputDetail').value.trim();
+
+            if (editId) {
+                const index = state.records.findIndex(r => r.id === editId);
+                if (index !== -1) {
+                    state.records[index] = { ...state.records[index], grade, classNum, studentNum, name, teacher, date, category, detail };
+                    showToast("지도 기록이 수정되었습니다.", "success");
+                }
+            } else {
+                const newRecord = {
+                    id: "R-" + Date.now(),
+                    grade, classNum, studentNum, name, teacher, date, category, detail,
+                    reflectionCompleted: false
+                };
+                state.records.push(newRecord);
+                showToast("새로운 지도 기록이 등록되었습니다.", "success");
+            }
+
+            saveData();
+            renderAll();
+            closeAddRecordModal();
+        }
+
+        function editRecord(id) {
+            triggerHaptic();
+            const record = state.records.find(r => r.id === id);
+            if (!record) return;
+
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-blue-400"></i> 지도기록 수정`;
+            document.getElementById('editRecordId').value = record.id;
+            document.getElementById('inputGrade').value = record.grade;
+            document.getElementById('inputClass').value = record.classNum;
+            document.getElementById('inputNum').value = record.studentNum;
+            document.getElementById('inputName').value = record.name;
+            document.getElementById('inputTeacher').value = record.teacher;
+            document.getElementById('inputDate').value = record.date;
+            document.getElementById('inputCategory').value = record.category;
+            document.getElementById('inputDetail').value = record.detail;
+
+            document.getElementById('addRecordModal').classList.remove('hidden');
+        }
+
+        function deleteRecord(id) {
+            triggerHaptic();
+            const record = state.records.find(r => r.id === id);
+            if (!record) return;
+
+            openConfirmModal("기록 삭제", `${record.name} 학생의 지도 기록(${record.date})을 삭제하시겠습니까?`, () => {
+                state.records = state.records.filter(r => r.id !== id);
+                saveData();
+                renderAll();
+                showToast("지도가 삭제되었습니다.", "info");
+            });
+        }
+
+        function openReflectionModal(studentKey) {
+            triggerHaptic();
+            const studentStats = getStudentStats();
+            const student = studentStats.find(s => s.key === studentKey);
+            if (!student) return;
+
+            state.currentStudentForReflection = student;
+
+            document.getElementById('modalStudentSummary').innerHTML = `
+                <div>
+                    <span class="text-slate-500">학생 정보:</span>
+                    <p class="font-bold text-slate-800">${student.grade}학년 ${student.classNum}반 ${student.studentNum}번 ${student.name}</p>
+                </div>
+                <div>
+                    <span class="text-slate-500">누적 지도 횟수:</span>
+                    <p class="font-bold text-amber-700">${student.count}회 (성찰교실 기준 도달)</p>
+                </div>
+            `;
+
+            const historyContainer = document.getElementById('modalStudentHistory');
+            let historyHtml = `
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-100 text-slate-600 font-semibold">
+                        <tr>
+                            <th class="p-2 border-b">일자</th>
+                            <th class="p-2 border-b">구분</th>
+                            <th class="p-2 border-b">지도 내용</th>
+                            <th class="p-2 border-b">교사</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+            `;
+
+            student.records.forEach(r => {
+                historyHtml += `
+                    <tr>
+                        <td class="p-2 whitespace-nowrap text-slate-500">${r.date}</td>
+                        <td class="p-2 font-semibold text-slate-700">${r.category}</td>
+                        <td class="p-2 text-slate-600">${r.detail}</td>
+                        <td class="p-2 text-slate-500 whitespace-nowrap">${r.teacher}</td>
+                    </tr>
+                `;
+            });
+
+            historyHtml += `</tbody></table>`;
+            historyContainer.innerHTML = historyHtml;
+
+            document.getElementById('reflectionText1').value = "나의 용모 규칙 및 수업 태도 불응이 스스로의 성장과 학급 분위기에 지장을 준 점을 깊이 반성합니다.";
+            document.getElementById('reflectionText2').value = "기본 생활 규칙을 철저히 준수하고 교사 지시사항에 성실히 응하겠습니다.";
+
+            document.getElementById('reflectionModal').classList.remove('hidden');
+        }
+
+        function closeReflectionModal() {
+            document.getElementById('reflectionModal').classList.add('hidden');
+        }
+
+        function completeReflectionProcess() {
+            if (!state.currentStudentForReflection) return;
+            triggerHaptic();
+
+            const studentKey = state.currentStudentForReflection.key;
+            state.records.forEach(r => {
+                const k = `${r.grade}-${r.classNum}-${r.studentNum}-${r.name}`;
+                if (k === studentKey) {
+                    r.reflectionCompleted = true;
+                }
+            });
+
+            saveData();
+            renderAll();
+            closeReflectionModal();
+            showToast(`${state.currentStudentForReflection.name} 학생의 성찰교실 이수가 완료되었습니다.`, "success");
+        }
+
+        function printReflectionForm() {
+            window.print();
+        }
+
+        function openMobileScanModal() {
+            triggerHaptic();
+            document.getElementById('mobileScanModal').classList.remove('hidden');
+        }
+
+        function closeMobileScanModal() {
+            document.getElementById('mobileScanModal').classList.add('hidden');
+        }
+
+        function handleCameraCapture(event) {
+            const file = event.target.files[0];
+            if (file) {
+                showToast("카메라 이미지 촬영 완료 (시뮬레이션 스캔 분석 중...)", "info");
+                setTimeout(() => {
+                    closeMobileScanModal();
+                    openAddRecordModal();
+                    showToast("스캔된 사진 정보를 기반으로 입력창이 열렸습니다.", "success");
+                }, 1000);
+            }
+        }
+
+        function handleQuickSearch() {
+            const val = document.getElementById('quickStudentKey').value.trim();
+            if (!val) {
+                showToast("검색할 학생 이름 또는 번호를 입력하세요.", "error");
+                return;
+            }
+            switchTab('records');
+            document.getElementById('recordSearch').value = val;
+            applyFilters();
+            closeMobileScanModal();
+        }
+
+        function renderCharts() {
+            const categoryCounts = {};
+            state.records.forEach(r => {
+                categoryCounts[r.category] = (categoryCounts[r.category] || 0) + 1;
+            });
+
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            if (state.charts.category) state.charts.category.destroy();
+
+            state.charts.category = new Chart(catCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categoryCounts),
+                    datasets: [{
+                        data: Object.values(categoryCounts),
+                        backgroundColor: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#cbd5e1']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+                }
+            });
+
+            const gradeCounts = { '1학년': 0, '2학년': 0, '3학년': 0 };
+            state.records.forEach(r => {
+                const label = `${r.grade}학년`;
+                if (gradeCounts[label] !== undefined) gradeCounts[label]++;
+            });
+
+            const gradeCtx = document.getElementById('gradeChart').getContext('2d');
+            if (state.charts.grade) state.charts.grade.destroy();
+
+            state.charts.grade = new Chart(gradeCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(gradeCounts),
+                    datasets: [{
+                        label: '지도 건수',
+                        data: Object.values(gradeCounts),
+                        backgroundColor: '#4f46e5',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        function saveSettings() {
+            triggerHaptic();
+            const caution = parseInt(document.getElementById('settingCautionThreshold').value);
+            const reflection = parseInt(document.getElementById('settingReflectionThreshold').value);
+            const warning = parseInt(document.getElementById('settingWarningThreshold').value);
+
+            if (caution >= reflection || reflection >= warning) {
+                showToast("단계별 기준 회수는 순차적으로 커야 합니다. (주의 < 성찰 < 선도위)", "error");
+                return;
+            }
+
+            state.settings.cautionThreshold = caution;
+            state.settings.reflectionThreshold = reflection;
+            state.settings.warningThreshold = warning;
+
+            saveData();
+            renderAll();
+            showToast("규정 설정이 저장되었습니다.", "success");
+        }
+
+        // Export JSON file for Android and OS Desktop backup
+        function exportJSON() {
+            triggerHaptic();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `school_guidance_backup_${new Date().toISOString().slice(0,10)}.json`);
+            dlAnchorElem.click();
+            showToast("JSON 데이터 백업 파일이 다운로드되었습니다.", "success");
+        }
+
+        // Import JSON file
+        function importJSON(event) {
+            triggerHaptic();
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.records && Array.isArray(parsed.records)) {
+                        state.records = parsed.records;
+                        if (parsed.settings) state.settings = parsed.settings;
+                        saveData();
+                        renderAll();
+                        showToast("복원이 완료되었습니다.", "success");
+                    } else {
+                        showToast("올바르지 않은 백업 파일 형에입니다.", "error");
+                    }
+                } catch(err) {
+                    showToast("파일을 읽는 중 오류가 발생했습니다.", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Export CSV for Excel
+        function exportCSV() {
+            triggerHaptic();
+            let csv = "\uFEFF"; // UTF-8 BOM for Excel
+            csv += "ID,학년,반,번호,이름,지도교사,일자,구분,세부내용,성찰완료여부\n";
+
+            state.records.forEach(r => {
+                csv += `"${r.id}",${r.grade},${r.classNum},${r.studentNum},"${r.name}","${r.teacher}","${r.date}","${r.category}","${r.detail.replace(/"/g, '""')}",${r.reflectionCompleted ? "완료" : "미완료"}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `성찰교실_지도기록_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            showToast("CSV 파일이 내보내기 되었습니다.", "success");
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+
+            let bgClass = "bg-slate-800 text-white";
+            if (type === 'success') bgClass = "bg-emerald-600 text-white shadow-emerald-500/20";
+            if (type === 'error') bgClass = "bg-rose-600 text-white shadow-rose-500/20";
+
+            toast.className = `${bgClass} px-3.5 py-2.5 rounded-xl shadow-lg text-xs font-medium pointer-events-auto flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'} text-sm"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Custom Confirm Modal Replacement for confirm()
+        function openConfirmModal(title, message, onOk) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmModalTitle').innerText = title;
+            document.getElementById('confirmModalMessage').innerText = message;
+
+            const okBtn = document.getElementById('confirmModalOkBtn');
+            const cancelBtn = document.getElementById('confirmModalCancelBtn');
+
+            const cleanup = () => {
+                modal.classList.add('hidden');
+                okBtn.onclick = null;
+                cancelBtn.onclick = null;
+            };
+
+            okBtn.onclick = () => {
+                cleanup();
+                onOk();
+            };
+
+            cancelBtn.onclick = () => {
+                cleanup();
+            };
+
+            modal.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
