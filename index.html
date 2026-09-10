@@ -1126,40 +1126,46 @@
             el.textContent=`${score}점${immediate?' · 즉시성찰':''}`;
         }
 
-        function autoFillStudentName(){
-            const grade=Number(document.getElementById('inputGrade')?.value);
-            const cls=Number(document.getElementById('inputClass')?.value);
-            const num=Number(document.getElementById('inputNum')?.value);
-            const nameEl=document.getElementById('inputName');
-            const msg=document.getElementById('studentLookupMessage');
+        let studentLookupSeq = 0;
+
+        async function autoFillStudentName(){
+            const seq = ++studentLookupSeq;
+            const grade = String(document.getElementById('inputGrade')?.value ?? '').trim();
+            const cls = String(document.getElementById('inputClass')?.value ?? '').trim();
+            const num = String(document.getElementById('inputNum')?.value ?? '').trim();
+            const nameEl = document.getElementById('inputName');
+            const msg = document.getElementById('studentLookupMessage');
             if(!nameEl) return;
-
             nameEl.value='';
-
             if(!grade || !cls || !num){
-                if(msg){
-                    msg.textContent='학년·반·번호를 입력하면 학생명이 자동으로 표시됩니다.';
-                    msg.className='text-[10px] mt-1 text-slate-400';
-                }
+                if(msg){ msg.textContent='학년·반·번호를 입력하면 학생명이 자동으로 표시됩니다.'; msg.className='text-[10px] mt-1 text-slate-400'; }
                 return;
             }
-
-            const found=(state.studentRoster||[]).find(s=>{
-                const g=Number(s['학년'] ?? s.grade);
-                const c=Number(s['반'] ?? s.classNum);
-                const n=Number(s['번호'] ?? s.studentNum);
-                return g===grade && c===cls && n===num;
-            });
-
+            const roster = Array.isArray(state.studentRoster) ? state.studentRoster : [];
+            const found = roster.find(s =>
+                String(s['학년'] ?? s.grade ?? '').trim() === grade &&
+                String(s['반'] ?? s.classNum ?? '').trim() === cls &&
+                String(s['번호'] ?? s.studentNum ?? '').trim() === num
+            );
             if(found){
                 nameEl.value=String(found['이름'] ?? found.name ?? '');
-                if(msg){
-                    msg.textContent='학생명이 자동으로 확인되었습니다.';
-                    msg.className='text-[10px] mt-1 text-emerald-600';
+                if(msg){ msg.textContent='학생명이 자동으로 확인되었습니다.'; msg.className='text-[10px] mt-1 text-emerald-600'; }
+                return;
+            }
+            try{
+                if(msg){ msg.textContent='학생명부 확인 중...'; msg.className='text-[10px] mt-1 text-slate-400'; }
+                const data = await apiGet('getStudentByNumber',{grade, classNum:cls, studentNum:num});
+                if(seq !== studentLookupSeq) return;
+                if(data && data.success && data.found && data.student){
+                    nameEl.value=String(data.student['이름'] ?? data.student.name ?? '');
+                    if(msg){ msg.textContent='학생명이 자동으로 확인되었습니다.'; msg.className='text-[10px] mt-1 text-emerald-600'; }
+                }else if(msg){
+                    msg.textContent='학생명부에서 해당 학생을 찾지 못했습니다.'; msg.className='text-[10px] mt-1 text-red-500';
                 }
-            }else if(msg){
-                msg.textContent='학생명부에서 해당 학생을 찾지 못했습니다.';
-                msg.className='text-[10px] mt-1 text-red-500';
+            }catch(err){
+                if(seq !== studentLookupSeq) return;
+                if(msg){ msg.textContent='학생명부 연결에 실패했습니다. Apps Script 배포를 확인하세요.'; msg.className='text-[10px] mt-1 text-red-500'; }
+                console.error(err);
             }
         }
 
