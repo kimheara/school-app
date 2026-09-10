@@ -111,8 +111,8 @@
             </div>
             <form id="loginForm" onsubmit="handleLogin(event)" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">사용자명</label>
-                    <input id="loginUsername" type="text" autocomplete="username" required placeholder="관리자 또는 교사 이름" class="w-full border border-slate-300 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">관리자</label>
+                    <div class="w-full border border-slate-300 bg-slate-50 rounded-xl px-3 py-3 text-sm text-slate-700">admin</div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">비밀번호</label>
@@ -835,13 +835,13 @@
 
         async function handleLogin(e){
             e.preventDefault();
-            const username=document.getElementById('loginUsername').value.trim();
+            const username='admin';
             const password=document.getElementById('loginPassword').value;
             const btn=document.getElementById('loginButton');
             const msg=document.getElementById('loginMessage');
 
-            if(!username || !password){
-                msg.textContent='사용자명과 비밀번호를 모두 입력하세요.';
+            if(!password){
+                msg.textContent='관리자 비밀번호를 입력하세요.';
                 msg.className='text-center text-xs text-red-500 min-h-4';
                 return;
             }
@@ -863,11 +863,6 @@
                     throw new Error(data?.message || 'Google Sheets 데이터를 불러오지 못했습니다.');
                 }
 
-                const roster=Array.isArray(data.studentRoster) ? data.studentRoster : [];
-                if(roster.length===0){
-                    throw new Error('학생명부 데이터가 없습니다. Google Sheets의 「학생명부」 시트를 확인하세요.');
-                }
-
                 state.currentUser={
                     name:String(auth.name||username),
                     role:String(auth.role||'input')
@@ -875,7 +870,7 @@
                 state.records=Array.isArray(data.records) ? data.records.map(normalizeRecord) : [];
                 state.rules=Array.isArray(data.rules) ? data.rules : [];
                 state.students=Array.isArray(data.students) ? data.students : [];
-                state.studentRoster=roster;
+                state.studentRoster=Array.isArray(data.studentRoster) ? data.studentRoster : [];
                 state.users=Array.isArray(data.users) ? data.users : [];
                 if(data.settings) state.settings={...state.settings,...data.settings};
 
