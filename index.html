@@ -591,8 +591,8 @@
                         <p id="studentLookupMessage" class="text-[10px] mt-1 text-slate-400">학년·반·번호를 입력하면 학생명이 자동으로 표시됩니다.</p>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 교사 성명 <span class="text-red-500">*</span></label>
-                        <input type="text" id="inputTeacher" placeholder="지도 교사 성명을 입력하세요" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm bg-white text-slate-700 focus:outline-none">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 교사 성명 <span class="text-slate-400 font-normal">(선택)</span></label>
+                        <input type="text" id="inputTeacher" placeholder="지도 교사 성명을 입력하세요" class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm bg-white text-slate-700 focus:outline-none">
                     </div>
                 </div>
 
@@ -997,10 +997,34 @@
         }
 
         function normalizeRecord(r) {
-            return {...r,
-                grade:Number(r.grade)||0, classNum:Number(r.classNum)||0, studentNum:Number(r.studentNum)||0,
-                score:Number(r.score)||0, cycle:Number(r.cycle)||1, ruleNo:String(r.ruleNo||r.규정번호||''), immediateReflection:(r.immediateReflection===true || String(r.immediateReflection||r.즉시성찰||'').toUpperCase()==='Y'),
-                reflectionCompleted: r.reflectionCompleted===true || String(r.reflectionCompleted).toUpperCase()==='TRUE'
+            // Google Sheets의 한글 헤더와 화면에서 사용하는 영문 필드를 모두 지원
+            return {
+                ...r,
+                id: String(r.id ?? r.ID ?? ''),
+                date: String(r.date ?? r.날짜 ?? ''),
+                grade: Number(r.grade ?? r.학년) || 0,
+                classNum: Number(r.classNum ?? r.반) || 0,
+                studentNum: Number(r.studentNum ?? r.번호) || 0,
+                name: String(r.name ?? r.이름 ?? ''),
+                teacher: String(r.teacher ?? r.교사 ?? ''),
+                ruleNo: String(r.ruleNo ?? r.규정번호 ?? ''),
+                category: String(r.category ?? r.구분 ?? ''),
+                violation: String(r.violation ?? r.위반내용 ?? ''),
+                detail: String(r.detail ?? r.지도내용 ?? ''),
+                score: Number(r.score ?? r.점수) || 0,
+                immediateReflection: (
+                    r.immediateReflection === true ||
+                    String(r.immediateReflection ?? r.즉시성찰 ?? '').toUpperCase() === 'Y' ||
+                    String(r.immediateReflection ?? r.즉시성찰 ?? '').toUpperCase() === 'TRUE'
+                ),
+                cycle: Number(r.cycle ?? r.사이클) || 1,
+                stage: Number(r.stage ?? r.성찰단계) || 0,
+                action: String(r.action ?? r.조치 ?? ''),
+                reflectionCompleted: (
+                    r.reflectionCompleted === true ||
+                    String(r.reflectionCompleted ?? r.완료여부 ?? '').toUpperCase() === 'TRUE'
+                ),
+                processedDate: String(r.processedDate ?? r.처리일 ?? '')
             };
         }
 
@@ -1447,7 +1471,7 @@
             document.getElementById('editRecordId').value = "";
             document.getElementById('recordForm').reset();
             populateCategoryOptions();
-            document.getElementById('inputTeacher').value = state.currentUser?.name || '';
+            document.getElementById('inputTeacher').value = '';
             autoFillStudentName();
             document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('addRecordModal').classList.remove('hidden');
