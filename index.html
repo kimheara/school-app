@@ -92,6 +92,9 @@
         body:not(.authenticated) > :not(#loginOverlay) {
             display: none !important;
         }
+        body:not(.authenticated) {
+            overflow: hidden !important;
+        }
     </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-blue-200">
@@ -834,31 +837,72 @@
             e.preventDefault();
             const username=document.getElementById('loginUsername').value.trim();
             const password=document.getElementById('loginPassword').value;
-            // 사용자명과 비밀번호가 모두 일치하는 서버 인증이 성공해야만 앱에 진입합니다.
             const btn=document.getElementById('loginButton');
             const msg=document.getElementById('loginMessage');
-            if(!username || !password) return;
-            btn.disabled=true; btn.classList.add('opacity-60'); msg.textContent='로그인 확인 중...';
+
+            if(!username || !password){
+                msg.textContent='사용자명과 비밀번호를 모두 입력하세요.';
+                msg.className='text-center text-xs text-red-500 min-h-4';
+                return;
+            }
+
+            btn.disabled=true;
+            btn.classList.add('opacity-60');
+            msg.textContent='로그인 확인 중...';
+            msg.className='text-center text-xs text-slate-400 min-h-4';
+
             try{
-                const result=await apiGet('login',{username,password});
-                if(!result || !result.success) throw new Error(result?.message || '로그인 정보가 올바르지 않습니다.');
-                state.currentUser={name:result.name||username,role:result.role||'input'};
+                const auth=await apiGet('login',{username,password});
+
+                if(!auth || auth.success!==true){
+                    throw new Error(auth?.message || '사용자명 또는 비밀번호가 올바르지 않습니다.');
+                }
+
+                const data=await apiGet('getAllData');
+                if(!data || data.success!==true){
+                    throw new Error(data?.message || 'Google Sheets 데이터를 불러오지 못했습니다.');
+                }
+
+                const roster=Array.isArray(data.studentRoster) ? data.studentRoster : [];
+                if(roster.length===0){
+                    throw new Error('학생명부 데이터가 없습니다. Google Sheets의 「학생명부」 시트를 확인하세요.');
+                }
+
+                state.currentUser={
+                    name:String(auth.name||username),
+                    role:String(auth.role||'input')
+                };
+                state.records=Array.isArray(data.records) ? data.records.map(normalizeRecord) : [];
+                state.rules=Array.isArray(data.rules) ? data.rules : [];
+                state.students=Array.isArray(data.students) ? data.students : [];
+                state.studentRoster=roster;
+                state.users=Array.isArray(data.users) ? data.users : [];
+                if(data.settings) state.settings={...state.settings,...data.settings};
+
                 hideLoginScreen();
-                await loadData();
                 populateCategoryOptions();
                 renderAll();
                 switchTab('records');
-                setTimeout(()=>openAddRecordModal(),150);
-                showToast(`${state.currentUser.name}님 로그인되었습니다. 지도등록 화면을 엽니다.`,'success');
+
+                setTimeout(()=>{
+                    openAddRecordModal();
+                    autoFillStudentName();
+                },150);
+
+                showToast(`${state.currentUser.name}님 로그인되었습니다.`,'success');
+
             }catch(err){
+                state.currentUser=null;
+                showLoginScreen();
                 msg.textContent=err.message || '로그인에 실패했습니다.';
                 msg.className='text-center text-xs text-red-500 min-h-4';
             }finally{
-                btn.disabled=false; btn.classList.remove('opacity-60');
+                btn.disabled=false;
+                btn.classList.remove('opacity-60');
             }
         }
 
-        function logout(){
+                function logout(){
             state.currentUser=null;
             document.getElementById('loginForm')?.reset();
             document.getElementById('loginMessage').textContent='';
@@ -1094,23 +1138,37 @@
             const nameEl=document.getElementById('inputName');
             const msg=document.getElementById('studentLookupMessage');
             if(!nameEl) return;
-            if(!grade || !cls || !num){ nameEl.value=''; if(msg) msg.textContent='학년·반·번호를 입력하면 학생명이 자동으로 표시됩니다.'; return; }
-            let found=state.studentRoster.find(s=>Number(s.학년||s.grade)===grade&&Number(s.반||s.classNum||s['반'])===cls&&Number(s.번호||s.studentNum||s['번호'])===num);
-            if(!found){
-                found=state.students.find(s=>Number(s.학년||s.grade)===grade&&Number(s.반||s.classNum)===cls&&Number(s.번호||s.studentNum)===num);
+
+            nameEl.value='';
+
+            if(!grade || !cls || !num){
+                if(msg){
+                    msg.textContent='학년·반·번호를 입력하면 학생명이 자동으로 표시됩니다.';
+                    msg.className='text-[10px] mt-1 text-slate-400';
+                }
+                return;
             }
-            if(!found){
-                const rec=state.records.find(r=>Number(r.grade)===grade&&Number(r.classNum)===cls&&Number(r.studentNum)===num&&r.name);
-                if(rec) found={이름:rec.name};
-            }
-            nameEl.value=found ? String(found.이름||found.name||'') : '';
-            if(msg){
-                msg.textContent=found ? '학생명이 자동으로 확인되었습니다.' : '학생명부에서 학생을 찾지 못했습니다. 학생명부 시트를 확인하세요.';
-                msg.className=found ? 'text-[10px] mt-1 text-emerald-600' : 'text-[10px] mt-1 text-red-500';
+
+            const found=(state.studentRoster||[]).find(s=>{
+                const g=Number(s['학년'] ?? s.grade);
+                const c=Number(s['반'] ?? s.classNum);
+                const n=Number(s['번호'] ?? s.studentNum);
+                return g===grade && c===cls && n===num;
+            });
+
+            if(found){
+                nameEl.value=String(found['이름'] ?? found.name ?? '');
+                if(msg){
+                    msg.textContent='학생명이 자동으로 확인되었습니다.';
+                    msg.className='text-[10px] mt-1 text-emerald-600';
+                }
+            }else if(msg){
+                msg.textContent='학생명부에서 해당 학생을 찾지 못했습니다.';
+                msg.className='text-[10px] mt-1 text-red-500';
             }
         }
 
-        function loadSampleData() {
+                function loadSampleData() {
             triggerHaptic();
             openConfirmModal("샘플 데이터 복원", "기존 데이터가 샘플 데이터로 대체됩니다. 진행할까요?", () => {
                 state.records = JSON.parse(JSON.stringify(sampleRecords));
