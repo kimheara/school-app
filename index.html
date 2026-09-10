@@ -359,7 +359,7 @@
                         <i class="fa-solid fa-school-flag text-amber-400"></i> 성찰교실 배정 및 반성일지 이수 관리
                     </h2>
                     <p class="text-xs sm:text-sm text-slate-300 max-w-2xl">
-                        생활규정 5회 이상 누적 학생 대상 성찰교실 출석 관리, 성찰록 작성 및 모바일/프린트 인쇄를 지원합니다.
+                        생활규정 위반 점수를 누적하여 6점씩 4단계로 관리합니다. 3단계는 학부모 내교, 4단계는 생활교육위원회 회부로 처리합니다.
                     </p>
                 </div>
                 <div class="absolute right-3 bottom-1 opacity-10 text-8xl pointer-events-none">
@@ -456,52 +456,25 @@
                     </div>
 
                     <div class="space-y-3.5">
-                        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                            <div>
-                                <span class="text-xs sm:text-sm font-semibold text-slate-700">1단계: 구두 지도 / 경고</span>
-                                <p class="text-[11px] text-slate-400">기본 지도 기록 작성</p>
-                            </div>
-                            <span class="text-xs sm:text-sm font-bold text-slate-600">1회 이상</span>
+                        <div class="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200 flex items-center justify-between">
+                            <div><span class="text-xs sm:text-sm font-semibold text-blue-800">1단계 성찰교실</span><p class="text-[11px] text-blue-600">누적 6점 도달</p></div>
+                            <span class="text-xs sm:text-sm font-black text-blue-700">6점</span>
                         </div>
-
                         <div class="p-3.5 bg-amber-50/70 rounded-xl border border-amber-200 flex items-center justify-between">
-                            <div>
-                                <span class="text-xs sm:text-sm font-semibold text-amber-800">2단계: 담임/교과 상담 (주의)</span>
-                                <p class="text-[11px] text-amber-600">학생 면담 및 주의 촉구</p>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <input type="number" id="settingCautionThreshold" value="3" min="2" max="10" class="w-14 text-center border border-amber-300 rounded-lg p-1 font-bold text-amber-800 text-xs sm:text-sm">
-                                <span class="text-xs text-amber-800 font-medium">회</span>
-                            </div>
+                            <div><span class="text-xs sm:text-sm font-semibold text-amber-800">2단계 성찰교실</span><p class="text-[11px] text-amber-600">누적 12점 도달</p></div>
+                            <span class="text-xs sm:text-sm font-black text-amber-700">12점</span>
                         </div>
-
                         <div class="p-3.5 bg-orange-50/70 rounded-xl border border-orange-200 flex items-center justify-between">
-                            <div>
-                                <span class="text-xs sm:text-sm font-semibold text-orange-800">3단계: 성찰교실 참가 (교내성찰)</span>
-                                <p class="text-[11px] text-orange-600">성찰록 작성 및 이수 지정</p>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <input type="number" id="settingReflectionThreshold" value="5" min="3" max="15" class="w-14 text-center border border-orange-300 rounded-lg p-1 font-bold text-orange-800 text-xs sm:text-sm">
-                                <span class="text-xs text-orange-800 font-medium">회</span>
-                            </div>
+                            <div><span class="text-xs sm:text-sm font-semibold text-orange-800">3단계 학부모 내교</span><p class="text-[11px] text-orange-600">누적 18점 도달</p></div>
+                            <span class="text-xs sm:text-sm font-black text-orange-700">18점</span>
                         </div>
-
                         <div class="p-3.5 bg-rose-50/70 rounded-xl border border-rose-200 flex items-center justify-between">
-                            <div>
-                                <span class="text-xs sm:text-sm font-semibold text-rose-800">4단계: 학생선도위원회 회부</span>
-                                <p class="text-[11px] text-rose-600">선도위 안정적 심의 준비</p>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <input type="number" id="settingWarningThreshold" value="7" min="5" max="20" class="w-14 text-center border border-rose-300 rounded-lg p-1 font-bold text-rose-800 text-xs sm:text-sm">
-                                <span class="text-xs text-rose-800 font-medium">회</span>
-                            </div>
+                            <div><span class="text-xs sm:text-sm font-semibold text-rose-800">4단계 생활교육위원회 회부</span><p class="text-[11px] text-rose-600">누적 24점 도달 후 처리 완료 시 초기화</p></div>
+                            <span class="text-xs sm:text-sm font-black text-rose-700">24점</span>
                         </div>
                     </div>
-
-                    <div class="flex justify-end pt-2">
-                        <button onclick="saveSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-medium shadow transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-floppy-disk"></i> 설정 저장
-                        </button>
+                    <div class="bg-slate-50 rounded-xl p-3 text-[11px] text-slate-600 leading-relaxed">
+                        <b>※ 점수는 「규정」 시트의 점수를 기준으로 자동 누적됩니다.</b><br>4단계 처리 완료 후 현재 누적점수만 0점으로 초기화하며, 기존 지도·처리 이력은 보존됩니다.
                     </div>
                 </div>
 
@@ -592,15 +565,16 @@
                         <input type="date" id="inputDate" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">위반 구분 <span class="text-red-500">*</span></label>
-                        <select id="inputCategory" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50">
-                            <option value="복장/용모">복장/용모 위반</option>
-                            <option value="전자기기">전자기기 무단사용</option>
-                            <option value="지각/태만">지각 및 수업태만</option>
-                            <option value="언어/불손">언어폭력 및 불손</option>
-                            <option value="기타">기타 생활규정 위반</option>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">생활규정 항목 <span class="text-red-500">*</span></label>
+                        <select id="inputCategory" required class="w-full border border-slate-300 rounded-xl p-2 text-[11px] sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50">
+                            <option value="">생활규정 항목을 선택하세요</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="bg-blue-50 rounded-xl border border-blue-200 px-3 py-2 text-xs text-blue-800 flex items-center justify-between">
+                    <span><i class="fa-solid fa-star mr-1"></i> 이번 지도 점수</span>
+                    <strong id="inputScorePreview">1점</strong>
                 </div>
 
                 <!-- Detailed Reason -->
@@ -748,10 +722,13 @@
         let state = {
             records: [],
             settings: {
-                cautionThreshold: 3,     // 주의
-                reflectionThreshold: 5,  // 성찰교실
-                warningThreshold: 7     // 선도위
+                stage1: 6,
+                stage2: 12,
+                stage3: 18,
+                stage4: 24
             },
+            rules: [],
+            students: [],
             currentStudentForReflection: null,
             charts: { category: null, grade: null },
             deferredPWAInstall: null
@@ -786,7 +763,8 @@
             if (dateInput) {
                 dateInput.value = new Date().toISOString().split('T')[0];
             }
-            loadData();
+            loadData().then(() => { populateRuleOptions(); renderAll(); });
+            const cat=document.getElementById('inputCategory'); if(cat) cat.addEventListener('change', updateScorePreview);
             renderAll();
         };
 
@@ -864,29 +842,130 @@
             }
         }
 
-        function loadData() {
-            const savedRecords = localStorage.getItem('school_guidance_records');
-            const savedSettings = localStorage.getItem('school_guidance_settings');
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1G80QzHtzolD2g4G8hhsZE7GYo2Kk6PGFUnKEKY8u-DTbt2MxTV0RrT2Cwv5n2-32/exec";
+        let apiBusy = false;
 
-            if (savedRecords) {
-                try { state.records = JSON.parse(savedRecords); } catch(e) { state.records = JSON.parse(JSON.stringify(sampleRecords)); }
-            } else {
-                state.records = JSON.parse(JSON.stringify(sampleRecords));
-            }
+        function apiGet(action) {
+            return new Promise((resolve, reject) => {
+                const callback = 'gsCallback_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+                const script = document.createElement('script');
+                const timer = setTimeout(() => { cleanup(); reject(new Error('서버 응답 시간 초과')); }, 15000);
+                function cleanup(){ clearTimeout(timer); delete window[callback]; script.remove(); }
+                window[callback] = data => { cleanup(); resolve(data); };
+                script.onerror = () => { cleanup(); reject(new Error('구글시트 서버 연결 실패')); };
+                script.src = APPS_SCRIPT_URL + '?action=' + encodeURIComponent(action) + '&callback=' + callback;
+                document.body.appendChild(script);
+            });
+        }
 
-            if (savedSettings) {
-                try {
-                    state.settings = JSON.parse(savedSettings);
-                    document.getElementById('settingCautionThreshold').value = state.settings.cautionThreshold;
-                    document.getElementById('settingReflectionThreshold').value = state.settings.reflectionThreshold;
-                    document.getElementById('settingWarningThreshold').value = state.settings.warningThreshold;
-                } catch(e){}
+        function apiPost(action, payload) {
+            const body = new URLSearchParams({action, payload: JSON.stringify(payload || {})});
+            return fetch(APPS_SCRIPT_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body})
+                .then(() => ({success:true}));
+        }
+
+        async function loadData() {
+            try {
+                const data = await apiGet('getAllData');
+                state.records = Array.isArray(data.records) ? data.records.map(normalizeRecord) : [];
+                state.rules = Array.isArray(data.rules) ? data.rules : [];
+                state.students = Array.isArray(data.students) ? data.students : [];
+                if (data.settings) state.settings = {...state.settings, ...data.settings};
+                updateScorePreview();
+                showToast('구글시트 데이터가 불러와졌습니다.', 'success');
+            } catch (e) {
+                console.error(e);
+                state.records = [];
+                state.rules = [];
+                showToast('구글시트 연결에 실패했습니다. Apps Script 배포 권한을 확인하세요.', 'error');
             }
         }
 
-        function saveData() {
-            localStorage.setItem('school_guidance_records', JSON.stringify(state.records));
-            localStorage.setItem('school_guidance_settings', JSON.stringify(state.settings));
+        function normalizeRecord(r) {
+            return {...r,
+                grade:Number(r.grade)||0, classNum:Number(r.classNum)||0, studentNum:Number(r.studentNum)||0,
+                score:Number(r.score)||0, cycle:Number(r.cycle)||1, ruleNo:String(r.ruleNo||r.규정번호||''), immediateReflection:(r.immediateReflection===true || String(r.immediateReflection||r.즉시성찰||'').toUpperCase()==='Y'),
+                reflectionCompleted: r.reflectionCompleted===true || String(r.reflectionCompleted).toUpperCase()==='TRUE'
+            };
+        }
+
+        function saveData() { return Promise.resolve(); }
+
+        function saveRecordToServer(record, mode='saveRecord') {
+            return apiPost(mode, record).catch(e => { showToast('서버 저장에 실패했습니다.', 'error'); throw e; });
+        }
+
+        function getRuleScore(category) {
+            const exact = state.rules.find(r =>
+                String(r.항목번호 || r.ruleNo || '') === String(category || '')
+            );
+            if (exact) return Number(exact.점수 || exact.score) || 0;
+            return 0;
+        }
+
+        function getStage(score) {
+            if (score >= 24) return {n:4, label:'4단계 · 생활교육위원회 회부', action:'생활교육위원회 회부'};
+            if (score >= 18) return {n:3, label:'3단계 · 학부모 내교', action:'학부모 내교'};
+            if (score >= 12) return {n:2, label:'2단계 · 성찰교실', action:'2단계 성찰교실'};
+            if (score >= 6) return {n:1, label:'1단계 · 성찰교실', action:'1단계 성찰교실'};
+            return {n:0, label:'정상', action:'일반 지도'};
+        }
+
+        function getStudentStats() {
+            const map = {};
+            state.records.forEach(r => {
+                const key = `${r.grade}-${r.classNum}-${r.studentNum}-${r.name}`;
+                if (!map[key]) map[key] = {key,grade:r.grade,classNum:r.classNum,studentNum:r.studentNum,name:r.name,count:0,totalScore:0,records:[],currentCycle:Number(r.cycle)||1};
+                const s=map[key]; const cycle=Number(r.cycle)||1;
+                if (cycle > s.currentCycle) s.currentCycle=cycle;
+                if (cycle === s.currentCycle) { s.count++; s.totalScore += Number(r.score)||1; }
+                s.records.push(r);
+            });
+            Object.values(map).forEach(s => {
+                s.records.sort((a,b)=>new Date(b.date)-new Date(a.date));
+                const stage=getStage(s.totalScore); s.stage=stage.n; s.stageLabel=stage.label; s.action=stage.action;
+                s.latestCategory=s.records[0]?.category||'-';
+                s.status = stage.n===4?'WARNING':stage.n>=1?'REFLECTION':'NORMAL';
+                s.statusLabel=stage.label;
+                s.badgeClass = stage.n===4?'bg-rose-100 text-rose-800 border-rose-300':stage.n===3?'bg-orange-100 text-orange-800 border-orange-300':stage.n>=1?'bg-amber-100 text-amber-800 border-amber-300':'bg-slate-100 text-slate-700 border-slate-300';
+            });
+            return Object.values(map);
+        }
+
+        function getSelectedRule() {
+            const sel = document.getElementById('inputCategory');
+            if (!sel) return null;
+            const no = String(sel.value || '');
+            return state.rules.find(r => String(r.항목번호 || r.ruleNo || '') === no) || null;
+        }
+
+        function populateRuleOptions() {
+            const sel = document.getElementById('inputCategory');
+            if (!sel) return;
+            const current = sel.value;
+            const rules = [...state.rules].sort((a,b) =>
+                Number(a.항목번호 || a.ruleNo || 999) - Number(b.항목번호 || b.ruleNo || 999)
+            );
+            sel.innerHTML = '<option value="">생활규정 항목을 선택하세요</option>';
+            rules.forEach(r => {
+                const no = r.항목번호 || r.ruleNo || '';
+                const group = r.분류 || r.category || '';
+                const text = r.위반내용 || r.규정항목 || r.violation || '';
+                const score = Number(r.점수 || r.score || 0);
+                const immediate = String(r.즉시성찰 || r.immediateReflection || '').toUpperCase() === 'Y';
+                const opt = document.createElement('option');
+                opt.value = String(no);
+                opt.textContent = `${no}. ${text} [${score}점${immediate ? ' · 즉시성찰' : ''}]`;
+                opt.dataset.group = group;
+                sel.appendChild(opt);
+            });
+            if (current && [...sel.options].some(o => o.value === current)) sel.value = current;
+            updateScorePreview();
+        }
+
+        function updateScorePreview(){
+            const el=document.getElementById('inputScorePreview'); const cat=document.getElementById('inputCategory');
+            if(el && cat) el.textContent = `${getRuleScore(cat.value)}점`;
         }
 
         function loadSampleData() {
@@ -926,64 +1005,19 @@
             }
         }
 
-        function getStudentStats() {
-            const map = {};
-            state.records.forEach(r => {
-                const key = `${r.grade}-${r.classNum}-${r.studentNum}-${r.name}`;
-                if (!map[key]) {
-                    map[key] = {
-                        key,
-                        grade: r.grade,
-                        classNum: r.classNum,
-                        studentNum: r.studentNum,
-                        name: r.name,
-                        count: 0,
-                        records: []
-                    };
-                }
-                map[key].count++;
-                map[key].records.push(r);
-            });
-
-            Object.values(map).forEach(s => {
-                s.records.sort((a,b) => new Date(b.date) - new Date(a.date));
-                s.latestCategory = s.records[0]?.category || '-';
-
-                if (s.count >= state.settings.warningThreshold) {
-                    s.status = 'WARNING';
-                    s.statusLabel = '선도위 대상';
-                    s.badgeClass = 'bg-rose-100 text-rose-800 border-rose-300';
-                } else if (s.count >= state.settings.reflectionThreshold) {
-                    s.status = 'REFLECTION';
-                    s.statusLabel = '성찰교실 대상';
-                    s.badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
-                } else if (s.count >= state.settings.cautionThreshold) {
-                    s.status = 'CAUTION';
-                    s.statusLabel = '주의 단계';
-                    s.badgeClass = 'bg-yellow-100 text-yellow-800 border-yellow-300';
-                } else {
-                    s.status = 'NORMAL';
-                    s.statusLabel = '일반 지도';
-                    s.badgeClass = 'bg-slate-100 text-slate-700 border-slate-300';
-                }
-            });
-
-            return Object.values(map);
-        }
-
         function renderAll() {
             const studentStats = getStudentStats();
 
             // 1. Dashboard Stat Cards
             document.getElementById('stat-total-records').innerText = `${state.records.length}건`;
             
-            const pendingReflectionStudents = studentStats.filter(s => s.count >= state.settings.reflectionThreshold && s.records.some(r => !r.reflectionCompleted));
+            const pendingReflectionStudents = studentStats.filter(s => s.stage >= 1 && s.stage <= 2 && s.records.some(r => !r.reflectionCompleted));
             document.getElementById('stat-pending-reflection').innerText = `${pendingReflectionStudents.length}명`;
             
             const completedStudents = studentStats.filter(s => s.records.some(r => r.reflectionCompleted));
             document.getElementById('stat-completed-reflection').innerText = `${completedStudents.length}명`;
 
-            const highRiskStudents = studentStats.filter(s => s.count >= state.settings.warningThreshold);
+            const highRiskStudents = studentStats.filter(s => s.stage >= 4);
             document.getElementById('stat-high-risk').innerText = `${highRiskStudents.length}명`;
 
             // Reflection badges
@@ -1013,7 +1047,7 @@
                         </td>
                         <td class="px-4 py-3">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
-                                누적 ${s.count}회
+                                누적 ${s.totalScore}점
                             </span>
                         </td>
                         <td class="px-4 py-3 text-xs text-slate-600">${s.latestCategory}</td>
@@ -1141,7 +1175,7 @@
             candidatesList.innerHTML = '';
             completedList.innerHTML = '';
 
-            const candidates = studentStats.filter(s => s.count >= state.settings.reflectionThreshold && s.records.some(r => !r.reflectionCompleted));
+            const candidates = studentStats.filter(s => s.stage >= 1 && s.stage <= 2 && s.records.some(r => !r.reflectionCompleted));
             const completed = studentStats.filter(s => s.records.some(r => r.reflectionCompleted));
 
             document.getElementById('pendingCountBadge').innerText = `${candidates.length}명 대기`;
@@ -1162,7 +1196,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-slate-800 text-xs sm:text-sm">${s.grade}학년 ${s.classNum}반 ${s.studentNum}번 ${s.name}</span>
                                 <span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-full border border-amber-300">
-                                    누적 ${s.count}회
+                                    누적 ${s.totalScore}점
                                 </span>
                             </div>
                             <p class="text-xs text-slate-600">위반 요약: ${s.records.map(r=>r.category).join(', ')}</p>
@@ -1201,7 +1235,7 @@
             const topRiskTable = document.getElementById('topRiskTable');
             topRiskTable.innerHTML = '';
 
-            const sorted = [...studentStats].sort((a,b) => b.count - a.count).slice(0, 5);
+            const sorted = [...studentStats].sort((a,b) => b.totalScore - a.totalScore).slice(0, 5);
 
             if (sorted.length === 0) {
                 topRiskTable.innerHTML = `<tr><td colspan="5" class="px-4 py-4 text-center text-slate-400 text-xs">데이터가 없습니다.</td></tr>`;
@@ -1216,7 +1250,7 @@
                     <td class="px-4 py-2.5 font-bold text-slate-800">${s.grade}학년 ${s.classNum}반 ${s.name}</td>
                     <td class="px-4 py-2.5">
                         <span class="font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                            ${s.count}회
+                            ${s.totalScore}점
                         </span>
                     </td>
                     <td class="px-4 py-2.5 text-slate-600">${s.latestCategory}</td>
@@ -1243,39 +1277,27 @@
             document.getElementById('addRecordModal').classList.add('hidden');
         }
 
-        function handleRecordSubmit(e) {
-            e.preventDefault();
-            triggerHaptic();
-
-            const editId = document.getElementById('editRecordId').value;
-            const grade = parseInt(document.getElementById('inputGrade').value);
-            const classNum = parseInt(document.getElementById('inputClass').value);
-            const studentNum = parseInt(document.getElementById('inputNum').value);
-            const name = document.getElementById('inputName').value.trim();
-            const teacher = document.getElementById('inputTeacher').value.trim();
-            const date = document.getElementById('inputDate').value;
-            const category = document.getElementById('inputCategory').value;
-            const detail = document.getElementById('inputDetail').value.trim();
-
-            if (editId) {
-                const index = state.records.findIndex(r => r.id === editId);
-                if (index !== -1) {
-                    state.records[index] = { ...state.records[index], grade, classNum, studentNum, name, teacher, date, category, detail };
-                    showToast("지도 기록이 수정되었습니다.", "success");
-                }
-            } else {
-                const newRecord = {
-                    id: "R-" + Date.now(),
-                    grade, classNum, studentNum, name, teacher, date, category, detail,
-                    reflectionCompleted: false
-                };
-                state.records.push(newRecord);
-                showToast("새로운 지도 기록이 등록되었습니다.", "success");
-            }
-
-            saveData();
-            renderAll();
-            closeAddRecordModal();
+        async function handleRecordSubmit(e) {
+            e.preventDefault(); triggerHaptic();
+            const editId=document.getElementById('editRecordId').value;
+            const grade=parseInt(document.getElementById('inputGrade').value), classNum=parseInt(document.getElementById('inputClass').value), studentNum=parseInt(document.getElementById('inputNum').value);
+            const name=document.getElementById('inputName').value.trim(), teacher=document.getElementById('inputTeacher').value.trim(), date=document.getElementById('inputDate').value, ruleNo=document.getElementById('inputCategory').value, detail=document.getElementById('inputDetail').value.trim();
+            const rule=getSelectedRule();
+            if(!rule){ showToast('생활규정 항목을 선택하세요.','error'); return; }
+            const category=String(rule.분류||rule.category||'');
+            const violation=String(rule.위반내용||rule.규정항목||rule.violation||'');
+            const score=Number(rule.점수||rule.score)||0;
+            const immediateReflection=String(rule.즉시성찰||rule.immediateReflection||'').toUpperCase()==='Y';
+            const stats=getStudentStats().find(s=>`${s.grade}-${s.classNum}-${s.studentNum}-${s.name}`===`${grade}-${classNum}-${studentNum}-${name}`);
+            const cycle=stats ? stats.currentCycle : 1;
+            const record={id:editId||'R-'+Date.now(),grade,classNum,studentNum,name,teacher,date,ruleNo,category,violation,detail,score,immediateReflection,cycle,reflectionCompleted:false};
+            try {
+                await saveRecordToServer(record, editId?'updateRecord':'saveRecord');
+                if(editId){ const i=state.records.findIndex(r=>r.id===editId); if(i>=0) state.records[i]=normalizeRecord(record); }
+                else state.records.push(normalizeRecord(record));
+                renderAll(); closeAddRecordModal();
+                showToast(editId?'지도 기록이 수정되었습니다.':`지도 기록이 저장되었습니다. (${score}점${immediateReflection?' · 즉시성찰':''})`,'success');
+            } catch(e){}
         }
 
         function editRecord(id) {
@@ -1291,22 +1313,16 @@
             document.getElementById('inputName').value = record.name;
             document.getElementById('inputTeacher').value = record.teacher;
             document.getElementById('inputDate').value = record.date;
-            document.getElementById('inputCategory').value = record.category;
+            document.getElementById('inputCategory').value = String(record.ruleNo || record.규정번호 || record.category || '');
             document.getElementById('inputDetail').value = record.detail;
 
             document.getElementById('addRecordModal').classList.remove('hidden');
         }
 
         function deleteRecord(id) {
-            triggerHaptic();
-            const record = state.records.find(r => r.id === id);
-            if (!record) return;
-
-            openConfirmModal("기록 삭제", `${record.name} 학생의 지도 기록(${record.date})을 삭제하시겠습니까?`, () => {
-                state.records = state.records.filter(r => r.id !== id);
-                saveData();
-                renderAll();
-                showToast("지도가 삭제되었습니다.", "info");
+            triggerHaptic(); const record=state.records.find(r=>r.id===id); if(!record)return;
+            openConfirmModal('기록 삭제', `${record.name} 학생의 지도 기록(${record.date})을 삭제하시겠습니까?`, async ()=>{
+                try { await apiPost('deleteRecord',{id}); state.records=state.records.filter(r=>r.id!==id); renderAll(); showToast('지도가 삭제되었습니다.','info'); } catch(e){}
             });
         }
 
@@ -1324,8 +1340,8 @@
                     <p class="font-bold text-slate-800">${student.grade}학년 ${student.classNum}반 ${student.studentNum}번 ${student.name}</p>
                 </div>
                 <div>
-                    <span class="text-slate-500">누적 지도 횟수:</span>
-                    <p class="font-bold text-amber-700">${student.count}회 (성찰교실 기준 도달)</p>
+                    <span class="text-slate-500">현재 누적 점수:</span>
+                    <p class="font-bold text-amber-700">${student.totalScore}점 · ${student.stageLabel}</p>
                 </div>
             `;
 
@@ -1367,22 +1383,23 @@
             document.getElementById('reflectionModal').classList.add('hidden');
         }
 
-        function completeReflectionProcess() {
-            if (!state.currentStudentForReflection) return;
-            triggerHaptic();
-
-            const studentKey = state.currentStudentForReflection.key;
-            state.records.forEach(r => {
-                const k = `${r.grade}-${r.classNum}-${r.studentNum}-${r.name}`;
-                if (k === studentKey) {
-                    r.reflectionCompleted = true;
+        async function completeReflectionProcess() {
+            if(!state.currentStudentForReflection)return; triggerHaptic();
+            const s=state.currentStudentForReflection;
+            try {
+                if(s.stage>=4){
+                    await apiPost('completeStage',{grade:s.grade,classNum:s.classNum,studentNum:s.studentNum,name:s.name,stage:4,cycle:s.currentCycle});
+                    state.records.forEach(r=>{if(`${r.grade}-${r.classNum}-${r.studentNum}-${r.name}`===s.key && Number(r.cycle||1)===s.currentCycle) r.stageCompleted=4;});
+                    // 서버가 새 사이클을 만들도록 했으므로 최신 데이터 재조회
+                    await loadData();
+                    showToast(`${s.name} 학생의 4단계 처리 완료. 누적점수를 0점으로 초기화했습니다.`,'success');
+                } else {
+                    await apiPost('completeStage',{grade:s.grade,classNum:s.classNum,studentNum:s.studentNum,name:s.name,stage:s.stage,cycle:s.currentCycle});
+                    state.records.forEach(r=>{if(`${r.grade}-${r.classNum}-${r.studentNum}-${r.name}`===s.key && Number(r.cycle||1)===s.currentCycle) r.reflectionCompleted=true;});
+                    renderAll(); showToast(`${s.name} 학생의 ${s.stage}단계 처리가 완료되었습니다.`,'success');
                 }
-            });
-
-            saveData();
-            renderAll();
-            closeReflectionModal();
-            showToast(`${state.currentStudentForReflection.name} 학생의 성찰교실 이수가 완료되었습니다.`, "success");
+                closeReflectionModal();
+            } catch(e){ showToast('처리 저장에 실패했습니다.','error'); }
         }
 
         function printReflectionForm() {
@@ -1475,25 +1492,7 @@
             });
         }
 
-        function saveSettings() {
-            triggerHaptic();
-            const caution = parseInt(document.getElementById('settingCautionThreshold').value);
-            const reflection = parseInt(document.getElementById('settingReflectionThreshold').value);
-            const warning = parseInt(document.getElementById('settingWarningThreshold').value);
-
-            if (caution >= reflection || reflection >= warning) {
-                showToast("단계별 기준 회수는 순차적으로 커야 합니다. (주의 < 성찰 < 선도위)", "error");
-                return;
-            }
-
-            state.settings.cautionThreshold = caution;
-            state.settings.reflectionThreshold = reflection;
-            state.settings.warningThreshold = warning;
-
-            saveData();
-            renderAll();
-            showToast("규정 설정이 저장되었습니다.", "success");
-        }
+        function saveSettings() { showToast('성찰 단계 기준은 6·12·18·24점으로 고정되어 있습니다.','info'); }
 
         // Export JSON file for Android and OS Desktop backup
         function exportJSON() {
