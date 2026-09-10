@@ -591,8 +591,8 @@
                         <p id="studentLookupMessage" class="text-[10px] mt-1 text-slate-400">학년·반·번호를 입력하면 학생명이 자동으로 표시됩니다.</p>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 교사 성명 <span class="text-slate-400 font-normal">(선택)</span></label>
-                        <input type="text" id="inputTeacher" placeholder="지도 교사 성명을 입력하세요" class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm bg-white text-slate-700 focus:outline-none">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 교사 성명 <span class="text-red-500">*</span></label>
+                        <input type="text" id="inputTeacher" placeholder="지도 교사 성명을 입력하세요" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm bg-white text-slate-700 focus:outline-none">
                     </div>
                 </div>
 
@@ -1447,7 +1447,7 @@
             document.getElementById('editRecordId').value = "";
             document.getElementById('recordForm').reset();
             populateCategoryOptions();
-            document.getElementById('inputTeacher').value = '';
+            document.getElementById('inputTeacher').value = state.currentUser?.name || '';
             autoFillStudentName();
             document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('addRecordModal').classList.remove('hidden');
