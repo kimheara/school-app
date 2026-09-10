@@ -996,12 +996,55 @@
             }
         }
 
+        function formatDisplayDate(value) {
+            if (value === null || value === undefined || value === '') return '';
+            const s = String(value).trim();
+
+            // 이미 YYYY-MM-DD 형식이면 그대로 표시
+            if (/^\\d{4}-\\d{2}-\\d{2}$/.test(s)) return s;
+
+            // Google Sheets/API에서 넘어오는 ISO 날짜(예: 2026-09-09T15:00:00.000Z)를
+            // 한국 날짜 기준 YYYY-MM-DD로 표시
+            const m = s.match(/^(\\d{4})-(\\d{2})-(\\d{2})T/);
+            if (m) {
+                const d = new Date(s);
+                if (!Number.isNaN(d.getTime())) {
+                    const parts = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: 'Asia/Seoul',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    }).formatToParts(d);
+                    const y = parts.find(p => p.type === 'year')?.value;
+                    const mo = parts.find(p => p.type === 'month')?.value;
+                    const da = parts.find(p => p.type === 'day')?.value;
+                    if (y && mo && da) return `${y}-${mo}-${da}`;
+                }
+            }
+
+            // 그 밖의 날짜 문자열도 가능하면 한국 날짜로 정리
+            const d = new Date(s);
+            if (!Number.isNaN(d.getTime())) {
+                const parts = new Intl.DateTimeFormat('en-CA', {
+                    timeZone: 'Asia/Seoul',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).formatToParts(d);
+                const y = parts.find(p => p.type === 'year')?.value;
+                const mo = parts.find(p => p.type === 'month')?.value;
+                const da = parts.find(p => p.type === 'day')?.value;
+                if (y && mo && da) return `${y}-${mo}-${da}`;
+            }
+            return s;
+        }
+
         function normalizeRecord(r) {
             // Google Sheets의 한글 헤더와 화면에서 사용하는 영문 필드를 모두 지원
             return {
                 ...r,
                 id: String(r.id ?? r.ID ?? ''),
-                date: String(r.date ?? r.날짜 ?? ''),
+                date: formatDisplayDate(r.date ?? r.날짜 ?? ''),
                 grade: Number(r.grade ?? r.학년) || 0,
                 classNum: Number(r.classNum ?? r.반) || 0,
                 studentNum: Number(r.studentNum ?? r.번호) || 0,
