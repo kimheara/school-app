@@ -592,7 +592,7 @@
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 교사 성명 <span class="text-red-500">*</span></label>
-                        <input type="text" id="inputTeacher" placeholder="로그인 사용자" required readonly class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm bg-slate-100 text-slate-700 focus:outline-none">
+                        <input type="text" id="inputTeacher" placeholder="지도 교사 성명을 입력하세요" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm bg-white text-slate-700 focus:outline-none">
                     </div>
                 </div>
 
@@ -623,8 +623,8 @@
 
                 <!-- Detailed Reason -->
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 사유 및 구체적 상황 <span class="text-red-500">*</span></label>
-                    <textarea id="inputDetail" rows="3" placeholder="예: 2교시 수업 중 휴대전화 무단 제출 조치 거부 및 지적사항 불응" required class="w-full border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"></textarea>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 사유 및 구체적 상황 <span class="text-slate-400 font-normal">(선택)</span></label>
+                    <textarea id="inputDetail" rows="3" placeholder="예: 2교시 수업 중 휴대전화 무단 제출 조치 거부 및 지적사항 불응" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"></textarea>
                 </div>
 
                 <div class="pt-2 border-t border-slate-100 flex justify-end gap-2">
@@ -1461,7 +1461,7 @@
             e.preventDefault(); triggerHaptic();
             const editId=document.getElementById('editRecordId').value;
             const grade=parseInt(document.getElementById('inputGrade').value), classNum=parseInt(document.getElementById('inputClass').value), studentNum=parseInt(document.getElementById('inputNum').value);
-            const name=document.getElementById('inputName').value.trim(), teacher=(state.currentUser?.name || document.getElementById('inputTeacher').value.trim()), date=document.getElementById('inputDate').value, ruleNo=document.getElementById('inputViolation').value, detail=document.getElementById('inputDetail').value.trim();
+            const name=document.getElementById('inputName').value.trim(), teacher=document.getElementById('inputTeacher').value.trim(), date=document.getElementById('inputDate').value, ruleNo=document.getElementById('inputViolation').value, detail=document.getElementById('inputDetail').value.trim();
             const rule=getSelectedRule();
             if(!rule){ showToast('생활규정 항목을 선택하세요.','error'); return; }
             const category=String(rule.분류||rule.category||'');
