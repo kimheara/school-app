@@ -86,6 +86,12 @@
         .print-only {
             display: none;
         }
+
+        /* 로그인 성공 전에는 보호된 앱 영역을 표시하지 않습니다.
+           JavaScript가 실행되지 않는 경우에도 앱 본문이 노출되지 않도록 합니다. */
+        body:not(.authenticated) > :not(#loginOverlay) {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-blue-200">
@@ -400,7 +406,7 @@
                 <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                         <h3 class="font-bold text-slate-800 flex items-center gap-2 text-xs sm:text-sm">
-                            <i class="fa-solid fa-user-clock text-amber-500"></i> 성찰교실 참가 대상자 (5회 이상 누적)
+                            <i class="fa-solid fa-user-clock text-amber-500"></i> 성찰교실·단계별 처리 대상자 (6점 이상 또는 즉시성찰)
                         </h3>
                         <span id="pendingCountBadge" class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">0명 대기</span>
                     </div>
@@ -801,12 +807,14 @@
         };
 
         function showLoginScreen(){
+            document.body.classList.remove('authenticated');
             const overlay=document.getElementById('loginOverlay');
             if(overlay) overlay.classList.remove('hidden');
             setTimeout(()=>document.getElementById('loginUsername')?.focus(),100);
         }
 
         function hideLoginScreen(){
+            document.body.classList.add('authenticated');
             const overlay=document.getElementById('loginOverlay');
             if(overlay) overlay.classList.add('hidden');
         }
@@ -819,13 +827,14 @@
             const num=document.getElementById('inputNum');
             if(cat) cat.addEventListener('change', populateViolationOptions);
             if(violation) violation.addEventListener('change', updateScorePreview);
-            [grade,cls,num].forEach(el=>{ if(el) el.addEventListener('input', autoFillStudentName); });
+            [grade,cls,num].forEach(el=>{ if(el){ el.addEventListener('input', autoFillStudentName); el.addEventListener('change', autoFillStudentName); } });
         }
 
         async function handleLogin(e){
             e.preventDefault();
             const username=document.getElementById('loginUsername').value.trim();
             const password=document.getElementById('loginPassword').value;
+            // 사용자명과 비밀번호가 모두 일치하는 서버 인증이 성공해야만 앱에 진입합니다.
             const btn=document.getElementById('loginButton');
             const msg=document.getElementById('loginMessage');
             if(!username || !password) return;
@@ -1144,7 +1153,7 @@
             // 1. Dashboard Stat Cards
             document.getElementById('stat-total-records').innerText = `${state.records.length}건`;
             
-            const pendingReflectionStudents = studentStats.filter(s => s.stage >= 1 && s.stage <= 2 && s.records.some(r => !r.reflectionCompleted));
+            const pendingReflectionStudents = studentStats.filter(s => (s.immediatePending || s.stage >= 1) && s.records.some(r => !r.reflectionCompleted));
             document.getElementById('stat-pending-reflection').innerText = `${pendingReflectionStudents.length}명`;
             
             const completedStudents = studentStats.filter(s => s.records.some(r => r.reflectionCompleted));
@@ -1308,7 +1317,7 @@
             candidatesList.innerHTML = '';
             completedList.innerHTML = '';
 
-            const candidates = studentStats.filter(s => s.stage >= 1 && s.stage <= 2 && s.records.some(r => !r.reflectionCompleted));
+            const candidates = studentStats.filter(s => (s.immediatePending || s.stage >= 1) && s.records.some(r => !r.reflectionCompleted));
             const completed = studentStats.filter(s => s.records.some(r => r.reflectionCompleted));
 
             document.getElementById('pendingCountBadge').innerText = `${candidates.length}명 대기`;
