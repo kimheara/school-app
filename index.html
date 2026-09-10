@@ -90,6 +90,33 @@
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-blue-200">
 
+    <!-- Login Screen -->
+    <div id="loginOverlay" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-5">
+        <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div class="bg-slate-900 px-6 py-7 text-white text-center">
+                <div class="mx-auto w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center mb-3 shadow-lg">
+                    <i class="fa-solid fa-school text-2xl"></i>
+                </div>
+                <h1 class="text-xl font-bold">생활규정 성찰교실</h1>
+                <p class="text-xs text-slate-400 mt-1">교사 로그인</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">사용자명</label>
+                    <input id="loginUsername" type="text" autocomplete="username" required placeholder="관리자 또는 교사 이름" class="w-full border border-slate-300 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">비밀번호</label>
+                    <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="비밀번호" class="w-full border border-slate-300 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <button id="loginButton" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-bold text-sm transition">
+                    <i class="fa-solid fa-right-to-bracket mr-1.5"></i> 로그인
+                </button>
+                <p id="loginMessage" class="text-center text-xs text-slate-400 min-h-4"></p>
+            </form>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="fixed top-3 right-3 left-3 sm:left-auto sm:right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
@@ -154,6 +181,7 @@
                         <i class="fa-solid fa-qrcode text-sm"></i>
                         <span class="hidden sm:inline">스캔</span>
                     </button>
+                    <button onclick="logout()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-2 rounded-lg text-xs font-medium transition flex items-center gap-1.5" title="로그아웃"><i class="fa-solid fa-right-from-bracket"></i><span class="hidden sm:inline">로그아웃</span></button>
                     <button onclick="openAddRecordModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium shadow-md transition flex items-center gap-1.5">
                         <i class="fa-solid fa-plus"></i>
                         <span>지도등록</span>
@@ -550,11 +578,12 @@
                 <div class="grid grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">학생 성명 <span class="text-red-500">*</span></label>
-                        <input type="text" id="inputName" placeholder="홍길동" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="text" id="inputName" placeholder="반·번호 입력 시 자동 표시" required readonly class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm bg-slate-100 text-slate-700 focus:outline-none">
+                        <p id="studentLookupMessage" class="text-[10px] mt-1 text-slate-400">학년·반·번호를 입력하면 학생명이 자동으로 표시됩니다.</p>
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">지도 교사 성명 <span class="text-red-500">*</span></label>
-                        <input type="text" id="inputTeacher" placeholder="김교사" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="text" id="inputTeacher" placeholder="로그인 사용자" required readonly class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm bg-slate-100 text-slate-700 focus:outline-none">
                     </div>
                 </div>
 
@@ -565,15 +594,21 @@
                         <input type="date" id="inputDate" required class="w-full border border-slate-300 rounded-xl p-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">생활규정 항목 <span class="text-red-500">*</span></label>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">항목 구분 <span class="text-red-500">*</span></label>
                         <select id="inputCategory" required class="w-full border border-slate-300 rounded-xl p-2 text-[11px] sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50">
-                            <option value="">생활규정 항목을 선택하세요</option>
+                            <option value="">구분을 선택하세요</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">위반내용 <span class="text-red-500">*</span></label>
+                        <select id="inputViolation" required disabled class="w-full border border-slate-300 rounded-xl p-2 text-[11px] sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50">
+                            <option value="">먼저 항목 구분을 선택하세요</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="bg-blue-50 rounded-xl border border-blue-200 px-3 py-2 text-xs text-blue-800 flex items-center justify-between">
-                    <span><i class="fa-solid fa-star mr-1"></i> 이번 지도 점수</span>
+                    <span><i class="fa-solid fa-star mr-1"></i> 적용 점수 / 즉시성찰</span>
                     <strong id="inputScorePreview">1점</strong>
                 </div>
 
@@ -729,6 +764,9 @@
             },
             rules: [],
             students: [],
+            studentRoster: [],
+            users: [],
+            currentUser: null,
             currentStudentForReflection: null,
             charts: { category: null, grade: null },
             deferredPWAInstall: null
@@ -758,15 +796,65 @@
             detectEnvironment();
             startClock();
             initPWA();
-
-            const dateInput = document.getElementById('inputDate');
-            if (dateInput) {
-                dateInput.value = new Date().toISOString().split('T')[0];
-            }
-            loadData().then(() => { populateRuleOptions(); renderAll(); });
-            const cat=document.getElementById('inputCategory'); if(cat) cat.addEventListener('change', updateScorePreview);
-            renderAll();
+            setupFormEvents();
+            showLoginScreen();
         };
+
+        function showLoginScreen(){
+            const overlay=document.getElementById('loginOverlay');
+            if(overlay) overlay.classList.remove('hidden');
+            setTimeout(()=>document.getElementById('loginUsername')?.focus(),100);
+        }
+
+        function hideLoginScreen(){
+            const overlay=document.getElementById('loginOverlay');
+            if(overlay) overlay.classList.add('hidden');
+        }
+
+        function setupFormEvents(){
+            const cat=document.getElementById('inputCategory');
+            const violation=document.getElementById('inputViolation');
+            const grade=document.getElementById('inputGrade');
+            const cls=document.getElementById('inputClass');
+            const num=document.getElementById('inputNum');
+            if(cat) cat.addEventListener('change', populateViolationOptions);
+            if(violation) violation.addEventListener('change', updateScorePreview);
+            [grade,cls,num].forEach(el=>{ if(el) el.addEventListener('input', autoFillStudentName); });
+        }
+
+        async function handleLogin(e){
+            e.preventDefault();
+            const username=document.getElementById('loginUsername').value.trim();
+            const password=document.getElementById('loginPassword').value;
+            const btn=document.getElementById('loginButton');
+            const msg=document.getElementById('loginMessage');
+            if(!username || !password) return;
+            btn.disabled=true; btn.classList.add('opacity-60'); msg.textContent='로그인 확인 중...';
+            try{
+                const result=await apiGet('login',{username,password});
+                if(!result || !result.success) throw new Error(result?.message || '로그인 정보가 올바르지 않습니다.');
+                state.currentUser={name:result.name||username,role:result.role||'input'};
+                hideLoginScreen();
+                await loadData();
+                populateCategoryOptions();
+                renderAll();
+                switchTab('records');
+                setTimeout(()=>openAddRecordModal(),150);
+                showToast(`${state.currentUser.name}님 로그인되었습니다. 지도등록 화면을 엽니다.`,'success');
+            }catch(err){
+                msg.textContent=err.message || '로그인에 실패했습니다.';
+                msg.className='text-center text-xs text-red-500 min-h-4';
+            }finally{
+                btn.disabled=false; btn.classList.remove('opacity-60');
+            }
+        }
+
+        function logout(){
+            state.currentUser=null;
+            document.getElementById('loginForm')?.reset();
+            document.getElementById('loginMessage').textContent='';
+            showLoginScreen();
+        }
 
         // Detect Operating System & Android / iOS / Desktop environment
         function detectEnvironment() {
@@ -845,7 +933,7 @@
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz1G80QzHtzolD2g4G8hhsZE7GYo2Kk6PGFUnKEKY8u-DTbt2MxTV0RrT2Cwv5n2-32/exec";
         let apiBusy = false;
 
-        function apiGet(action) {
+        function apiGet(action, params={}) {
             return new Promise((resolve, reject) => {
                 const callback = 'gsCallback_' + Date.now() + '_' + Math.floor(Math.random()*10000);
                 const script = document.createElement('script');
@@ -853,7 +941,8 @@
                 function cleanup(){ clearTimeout(timer); delete window[callback]; script.remove(); }
                 window[callback] = data => { cleanup(); resolve(data); };
                 script.onerror = () => { cleanup(); reject(new Error('구글시트 서버 연결 실패')); };
-                script.src = APPS_SCRIPT_URL + '?action=' + encodeURIComponent(action) + '&callback=' + callback;
+                const qs=new URLSearchParams({action,callback,...params});
+                script.src = APPS_SCRIPT_URL + '?' + qs.toString();
                 document.body.appendChild(script);
             });
         }
@@ -870,6 +959,8 @@
                 state.records = Array.isArray(data.records) ? data.records.map(normalizeRecord) : [];
                 state.rules = Array.isArray(data.rules) ? data.rules : [];
                 state.students = Array.isArray(data.students) ? data.students : [];
+                state.studentRoster = Array.isArray(data.studentRoster) ? data.studentRoster : [];
+                state.users = Array.isArray(data.users) ? data.users : [];
                 if (data.settings) state.settings = {...state.settings, ...data.settings};
                 updateScorePreview();
                 showToast('구글시트 데이터가 불러와졌습니다.', 'success');
@@ -923,49 +1014,91 @@
             });
             Object.values(map).forEach(s => {
                 s.records.sort((a,b)=>new Date(b.date)-new Date(a.date));
-                const stage=getStage(s.totalScore); s.stage=stage.n; s.stageLabel=stage.label; s.action=stage.action;
+                const stage=getStage(s.totalScore);
+                const immediatePending=s.records.some(r=>r.immediateReflection && !r.reflectionCompleted);
+                s.stage=stage.n; s.stageLabel=stage.label; s.action=immediatePending ? '즉시 성찰교실' : stage.action;
                 s.latestCategory=s.records[0]?.category||'-';
-                s.status = stage.n===4?'WARNING':stage.n>=1?'REFLECTION':'NORMAL';
-                s.statusLabel=stage.label;
-                s.badgeClass = stage.n===4?'bg-rose-100 text-rose-800 border-rose-300':stage.n===3?'bg-orange-100 text-orange-800 border-orange-300':stage.n>=1?'bg-amber-100 text-amber-800 border-amber-300':'bg-slate-100 text-slate-700 border-slate-300';
+                s.immediatePending=immediatePending;
+                s.status = immediatePending || stage.n>=1 ? (stage.n===4?'WARNING':'REFLECTION') : 'NORMAL';
+                s.statusLabel=immediatePending ? '즉시 성찰교실' : stage.label;
+                s.badgeClass = stage.n===4?'bg-rose-100 text-rose-800 border-rose-300':stage.n===3?'bg-orange-100 text-orange-800 border-orange-300':(stage.n>=1||immediatePending)?'bg-amber-100 text-amber-800 border-amber-300':'bg-slate-100 text-slate-700 border-slate-300';
             });
             return Object.values(map);
         }
 
         function getSelectedRule() {
-            const sel = document.getElementById('inputCategory');
+            const sel = document.getElementById('inputViolation');
             if (!sel) return null;
             const no = String(sel.value || '');
             return state.rules.find(r => String(r.항목번호 || r.ruleNo || '') === no) || null;
         }
 
-        function populateRuleOptions() {
-            const sel = document.getElementById('inputCategory');
-            if (!sel) return;
-            const current = sel.value;
-            const rules = [...state.rules].sort((a,b) =>
-                Number(a.항목번호 || a.ruleNo || 999) - Number(b.항목번호 || b.ruleNo || 999)
-            );
-            sel.innerHTML = '<option value="">생활규정 항목을 선택하세요</option>';
-            rules.forEach(r => {
-                const no = r.항목번호 || r.ruleNo || '';
-                const group = r.분류 || r.category || '';
-                const text = r.위반내용 || r.규정항목 || r.violation || '';
-                const score = Number(r.점수 || r.score || 0);
-                const immediate = String(r.즉시성찰 || r.immediateReflection || '').toUpperCase() === 'Y';
-                const opt = document.createElement('option');
-                opt.value = String(no);
-                opt.textContent = `${no}. ${text} [${score}점${immediate ? ' · 즉시성찰' : ''}]`;
-                opt.dataset.group = group;
-                sel.appendChild(opt);
+        function populateCategoryOptions(){
+            const sel=document.getElementById('inputCategory');
+            if(!sel) return;
+            const current=sel.value;
+            const categories=[...new Set(state.rules.map(r=>String(r.분류||r.category||'')).filter(Boolean))];
+            sel.innerHTML='<option value="">구분을 선택하세요</option>';
+            categories.forEach(c=>{
+                const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o);
             });
-            if (current && [...sel.options].some(o => o.value === current)) sel.value = current;
+            if(current && categories.includes(current)) sel.value=current;
+            populateViolationOptions();
+        }
+
+        function populateViolationOptions(){
+            const cat=document.getElementById('inputCategory');
+            const sel=document.getElementById('inputViolation');
+            if(!cat || !sel) return;
+            const current=sel.value;
+            const rules=state.rules.filter(r=>String(r.분류||r.category||'')===String(cat.value||''))
+                .sort((a,b)=>Number(a.항목번호||a.ruleNo||999)-Number(b.항목번호||b.ruleNo||999));
+            sel.innerHTML=cat.value ? '<option value="">위반내용을 선택하세요</option>' : '<option value="">먼저 항목 구분을 선택하세요</option>';
+            sel.disabled=!cat.value;
+            rules.forEach(r=>{
+                const no=r.항목번호||r.ruleNo||'';
+                const text=r.위반내용||r.규정항목||r.violation||'';
+                const score=Number(r.점수||r.score)||0;
+                const immediate=String(r.즉시성찰||r.immediateReflection||'').toUpperCase()==='Y';
+                const o=document.createElement('option'); o.value=String(no);
+                o.textContent=`${no}. ${text}` + ` [${score}점${immediate?' · 즉시성찰':''}]`;
+                sel.appendChild(o);
+            });
+            if(current && rules.some(r=>String(r.항목번호||r.ruleNo||'')===current)) sel.value=current;
             updateScorePreview();
         }
 
         function updateScorePreview(){
-            const el=document.getElementById('inputScorePreview'); const cat=document.getElementById('inputCategory');
-            if(el && cat) el.textContent = `${getRuleScore(cat.value)}점`;
+            const el=document.getElementById('inputScorePreview');
+            const rule=getSelectedRule();
+            if(!el) return;
+            if(!rule){ el.textContent='선택 전'; return; }
+            const score=Number(rule.점수||rule.score)||0;
+            const immediate=String(rule.즉시성찰||rule.immediateReflection||'').toUpperCase()==='Y';
+            el.textContent=`${score}점${immediate?' · 즉시성찰':''}`;
+        }
+
+        function autoFillStudentName(){
+            const grade=Number(document.getElementById('inputGrade')?.value);
+            const cls=Number(document.getElementById('inputClass')?.value);
+            const num=Number(document.getElementById('inputNum')?.value);
+            const nameEl=document.getElementById('inputName');
+            const msg=document.getElementById('studentLookupMessage');
+            if(!nameEl) return;
+            if(!grade || !cls || !num){ nameEl.value=''; if(msg) msg.textContent='학년·반·번호를 입력하면 학생명이 자동으로 표시됩니다.'; return; }
+            let found=state.studentRoster.find(s=>Number(s.학년||s.grade)===grade&&Number(s.반||s.classNum||s['반'])===cls&&Number(s.번호||s.studentNum||s['번호'])===num);
+            if(!found){
+                found=state.students.find(s=>Number(s.학년||s.grade)===grade&&Number(s.반||s.classNum)===cls&&Number(s.번호||s.studentNum)===num);
+            }
+            if(!found){
+                const rec=state.records.find(r=>Number(r.grade)===grade&&Number(r.classNum)===cls&&Number(r.studentNum)===num&&r.name);
+                if(rec) found={이름:rec.name};
+            }
+            nameEl.value=found ? String(found.이름||found.name||'') : '';
+            if(msg){
+                msg.textContent=found ? '학생명이 자동으로 확인되었습니다.' : '학생명부에서 학생을 찾지 못했습니다. 학생명부 시트를 확인하세요.';
+                msg.className=found ? 'text-[10px] mt-1 text-emerald-600' : 'text-[10px] mt-1 text-red-500';
+            }
         }
 
         function loadSampleData() {
@@ -1269,6 +1402,9 @@
             document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-blue-400"></i> 신규 지도기록 등록`;
             document.getElementById('editRecordId').value = "";
             document.getElementById('recordForm').reset();
+            populateCategoryOptions();
+            document.getElementById('inputTeacher').value = state.currentUser?.name || '';
+            autoFillStudentName();
             document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('addRecordModal').classList.remove('hidden');
         }
@@ -1281,7 +1417,7 @@
             e.preventDefault(); triggerHaptic();
             const editId=document.getElementById('editRecordId').value;
             const grade=parseInt(document.getElementById('inputGrade').value), classNum=parseInt(document.getElementById('inputClass').value), studentNum=parseInt(document.getElementById('inputNum').value);
-            const name=document.getElementById('inputName').value.trim(), teacher=document.getElementById('inputTeacher').value.trim(), date=document.getElementById('inputDate').value, ruleNo=document.getElementById('inputCategory').value, detail=document.getElementById('inputDetail').value.trim();
+            const name=document.getElementById('inputName').value.trim(), teacher=(state.currentUser?.name || document.getElementById('inputTeacher').value.trim()), date=document.getElementById('inputDate').value, ruleNo=document.getElementById('inputViolation').value, detail=document.getElementById('inputDetail').value.trim();
             const rule=getSelectedRule();
             if(!rule){ showToast('생활규정 항목을 선택하세요.','error'); return; }
             const category=String(rule.분류||rule.category||'');
@@ -1313,7 +1449,7 @@
             document.getElementById('inputName').value = record.name;
             document.getElementById('inputTeacher').value = record.teacher;
             document.getElementById('inputDate').value = record.date;
-            document.getElementById('inputCategory').value = String(record.ruleNo || record.규정번호 || record.category || '');
+            document.getElementById('inputCategory').value = String(record.category || ''); populateViolationOptions(); document.getElementById('inputViolation').value = String(record.ruleNo || record.규정번호 || ''); updateScorePreview();
             document.getElementById('inputDetail').value = record.detail;
 
             document.getElementById('addRecordModal').classList.remove('hidden');
